@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARCA Governance - Diagnóstico Rápido</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h1 { color: #1e3a8a; text-align: center; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #666; margin-bottom: 25px; }
+        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        .checkbox-group { display: flex; align-items: center; margin-top: 15px; }
+        .checkbox-group input { width: auto; margin-right: 10px; }
+        button { width: 100%; background: #1e3a8a; color: white; border: none; padding: 12px; font-size: 16px; border-radius: 4px; cursor: pointer; margin-top: 25px; font-weight: bold; }
+        button:hover { background: #111827; }
+        .result-box { margin-top: 30px; padding: 20px; border-radius: 6px; display: none; }
+        .prioridade-CRÍTICA { background-color: #fee2e2; border-left: 6px solid #dc2626; color: #991b1b; }
+        .prioridade-ALTA { background-color: #ffedd5; border-left: 6px solid #ea580c; color: #9a3412; }
+        .prioridade-MÉDIA { background-color: #f0fdf4; border-left: 6px solid #16a34a; color: #14532d; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ARCA Governance MVP</h1>
+        <p class="subtitle">Autodiagnóstico Automatizado de Topo de Funil</p>
+        
+        <form id="formDiagnostico">
+            <label>Nome da Empresa:</label>
+            <input type="text" id="empresa" required placeholder="Ex: Contabilidade Metropolitana">
+
+            <label>Seu Nome / Responsável:</label>
+            <input type="text" id="responsavel" required placeholder="Ex: Mariana Souza">
+
+            <label>Frente do Diagnóstico (Isca):</label>
+            <select id="frente_atuacao" onchange="alternarCampos()">
+                <option value="CONTABIL_1">MVP 2 - Operação e Riscos Contábeis (Foco Escritórios)</option>
+                <option value="COMERCIAL">MVP 1 - Performance de Vendas B2B (Foco Comercial Geral)</option>
+                <option value="CONTABIL_2">MVP 2 - Troca/Abertura de Empresa (Foco Cliente Final)</option>
+            </select>
+
+            <div id="campoDominio" class="checkbox-group">
+                <input type="checkbox" id="usa_dominio" checked>
+                <label for="usa_dominio" style="margin:0;">Sua operação utiliza o Sistema Domínio?</label>
+            </div>
+
+            <label>Qual a sua principal dor ou gargalo atual?</label>
+            <textarea id="dor_mapeada" rows="3" placeholder="Ex: Parametrização incompleta e erros no Lucro Real..."></textarea>
+
+            <label>Simular Nota/Score Autoavaliado (0 a 100):</label>
+            <input type="number" id="score_arca" min="0" max="100" value="55">
+
+            <button type="button" onclick="enviarDiagnostico()">Gerar Meu Diagnóstico Gratuito</button>
+        </form>
+
+        <div id="resultado" class="result-box"></div>
+    </div>
+
+    <script>
+        function alternarCampos() {
+            const frente = document.getElementById("frente_atuacao").value;
+            const campoDominio = document.getElementById("campoDominio");
+            campoDominio.style.display = (frente === "COMERCIAL") ? "none" : "flex";
+        }
+
+        async function enviarDiagnostico() {
+            const payload = {
+                empresa: document.getElementById("empresa").value,
+                responsavel: document.getElementById("responsavel").value,
+                frente_atuacao: document.getElementById("frente_atuacao").value,
+                usa_dominio: document.getElementById("usa_dominio").checked,
+                score_arca: parseInt(document.getElementById("score_arca").value),
+                dor_mapeada: document.getElementById("dor_mapeada").value
+            };
+
+            if(!payload.empresa || !payload.responsavel) {
+                alert("Por favor, preencha a Empresa e o Responsável.");
+                return;
+            }
+
+            const response = await fetch('/diagnostico/processar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            const resultBox = document.getElementById("resultado");
+            
+            // Determina a classe de cor com base na prioridade comercial retornada pelo FastAPI
+            let classePrioridade = "MÉDIA";
+            if (data.roteamento_comercial.prioridade_atendimento.includes("CRÍTICA")) classePrioridade = "CRÍTICA";
+            if (data.roteamento_comercial.prioridade_atendimento.includes("ALTA")) classePrioridade = "ALTA";
+
+            resultBox.className = `result-box prioridade-${classePrioridade}`;
+            resultBox.style.display = "block";
+
+            // Monta o HTML dinâmico com o Roadmap calculado pelo backend
+            let roadmapHTML = "";
+            data.entregaveis_gerados.roadmap_de_melhorias_dinamico.forEach(item => {
+                roadmapHTML += `<li>${item}</li>`;
+            });
+
+            resultBox.innerHTML = `
+                <h3>📋 Resultado do Seu Score ARCA: ${data.entregaveis_gerados.score_arca}</h3>
+                <p><strong>Status da Operação:</strong> ${data.roteamento_comercial.prioridade_atendimento}</p>
+                <p><strong>Análise:</strong> ${data.entregaveis_gerados.relatorio_executivo}</p>
+                <hr>
+                <h4>🚀 Roadmap de Melhorias Recomendado:</h4>
+                <ul>${roadmapHTML}</ul>
+                <hr>
+                <p style="font-size:13px; text-align:center; margin:0;">
+                    <em>${data.roteamento_comercial.ancoragem_comercial}</em>
+                </p>
+            `;
+        }
+    </script>
+</body>
+</html>
