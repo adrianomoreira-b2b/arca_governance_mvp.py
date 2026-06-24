@@ -3,85 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARCA Governance - Diagnóstico Rápido</title>
+    <title>ARCA Governance - Autodiagnóstico Automatizado</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-        h1 { color: #1e3a8a; text-align: center; margin-bottom: 5px; }
-        p.subtitle { text-align: center; color: #666; margin-bottom: 25px; }
-        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
-        .checkbox-group { display: flex; align-items: center; margin-top: 15px; }
-        .checkbox-group input { width: auto; margin-right: 10px; }
-        button { width: 100%; background: #1e3a8a; color: white; border: none; padding: 12px; font-size: 16px; border-radius: 4px; cursor: pointer; margin-top: 25px; font-weight: bold; }
-        button:hover { background: #111827; }
-        .result-box { margin-top: 30px; padding: 20px; border-radius: 6px; display: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 650px; }
+        h1 { color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 28px; }
+        p.subtitle { text-align: center; color: #4b5563; margin-bottom: 30px; font-size: 15px; }
+        .step { display: none; }
+        .step.active { display: block; }
+        label { font-weight: 600; display: block; margin-top: 20px; margin-bottom: 8px; color: #374151; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: #f9fafb; transition: all 0.3s; }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; background-color: #fff; outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .pilar-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 15px; }
+        .pilar-title { font-weight: bold; color: #1e3a8a; margin-bottom: 10px; font-size: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+        .btn-group { display: flex; justify-content: space-between; margin-top: 30px; gap: 10px; }
+        button { flex: 1; padding: 14px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.3s; border: none; }
+        .btn-primary { background: #1e3a8a; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #e5e7eb; color: #4b5563; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .result-box { margin-top: 30px; padding: 25px; border-radius: 8px; display: none; }
         .prioridade-CRÍTICA { background-color: #fee2e2; border-left: 6px solid #dc2626; color: #991b1b; }
         .prioridade-ALTA { background-color: #ffedd5; border-left: 6px solid #ea580c; color: #9a3412; }
         .prioridade-MÉDIA { background-color: #f0fdf4; border-left: 6px solid #16a34a; color: #14532d; }
+        hr { border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 20px 0; }
         ul { padding-left: 20px; }
-        li { margin-bottom: 5px; }
+        li { margin-bottom: 8px; line-height: 1.5; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>ARCA Governance MVP</h1>
-        <p class="subtitle">Autodiagnóstico Automatizado de Topo de Funil</p>
+        <h1>ARCA Governance</h1>
+        <p class="subtitle">Autodiagnóstico Automatizado</p>
         
         <form id="formDiagnostico">
-            <label>Nome da Empresa:</label>
-            <input type="text" id="empresa" required placeholder="Ex: Contabilidade Metropolitana">
+            <div id="step1" class="step active">
+                <label>Nome da Empresa:</label>
+                <input type="text" id="empresa" required placeholder="Ex: Gestão Alfa Consultoria">
 
-            <label>Seu Nome / Responsável:</label>
-            <input type="text" id="responsavel" required placeholder="Ex: Mariana Souza">
+                <label>Seu Nome / Responsável:</label>
+                <input type="text" id="responsavel" required placeholder="Ex: Mariana Souza">
 
-            <label>Frente do Diagnóstico (Isca):</label>
-            <select id="frente_atuacao" onchange="alternarCampos()">
-                <option value="CONTABIL_1">MVP 2 - Operação e Riscos Contábeis (Foco Escritórios)</option>
-                <option value="COMERCIAL">MVP 1 - Performance de Vendas B2B (Foco Comercial Geral)</option>
-                <option value="CONTABIL_2">MVP 2 - Troca/Abertura de Empresa (Foco Cliente Final)</option>
-            </select>
+                <label>E-mail Corporativo:</label>
+                <input type="email" id="email" required placeholder="Ex: nome@empresa.com.br" onblur="validarEmail()">
 
-            <div id="campoDominio" class="checkbox-group">
-                <input type="checkbox" id="usa_dominio" checked>
-                <label for="usa_dominio" style="margin:0;">Sua operação utiliza o Sistema Domínio?</label>
+                <label>WhatsApp Comercial:</label>
+                <input type="text" id="whatsapp" required placeholder="Ex: (11) 99999-9999" oninput="aplicarMascaraZap(this)" onblur="validarZap()">
+
+                <label>Selecione Diagnóstico:</label>
+                <select id="area_desejada" onchange="atualizarPerguntasDinamicas()">
+                    <option value="MARKETING_VENDAS">Diagnóstico em Marketing e Vendas</option>
+                    <option value="FISCAL_TRIBUTARIO">Diagnóstico Fiscal e Tributário</option>
+                    <option value="GESTION_TIMES">Diagnóstico em Gestão de Empresas e Times</option>
+                    <option value="TECNOLOGIA">Diagnóstico em Tecnologia</option>
+                </select>
+
+                <label>Qual a sua principal dor ou gargalo atual?</label>
+                <textarea id="dor_mapeada" rows="2" placeholder="Ex: Processos manuais e falta de clareza nas metas..."></textarea>
+
+                <div class="btn-group">
+                    <button type="button" class="btn-primary" onclick="avancarParaPerguntas()">Responder Questionário Estruturado</button>
+                </div>
             </div>
 
-            <label>Qual a sua principal dor ou gargalo atual?</label>
-            <textarea id="dor_mapeada" rows="3" placeholder="Ex: Parametrização incompleta e erros no Lucro Real..."></textarea>
+            <div id="step2" class="step">
+                <h3 style="text-align: center; color: #1e3a8a; margin-top: 0;" id="tituloAreaForm">Pilares de Análise</h3>
+                
+                <div class="pilar-box">
+                    <div class="pilar-title">Pilar 1: Posicionamento e Perfil de Cliente Ideal (ICP)</div>
+                    <p id="txtPerguntaP1" style="font-size: 14px; margin-bottom: 12px; color: #4b5563;"></p>
+                    <select id="pilar_icp">
+                        <option value="0">🔴 Não possuo / Processo 100% manual ou inexistente</option>
+                        <option value="5">🟡 Parcialmente estruturado / Depende da memória de pessoas</option>
+                        <option value="10">🟢 100% Automatizado / Processo padronizado e documentado</option>
+                    </select>
+                </div>
 
-            <label>Simular Nota/Score Autoavaliado (0 a 100):</label>
-            <input type="number" id="score_arca" min="0" max="100" value="55">
+                <div class="pilar-box">
+                    <div class="pilar-title">Pilar 2: Processos e Cadência Comercial</div>
+                    <p id="txtPerguntaP2" style="font-size: 14px; margin-bottom: 12px; color: #4b5563;"></p>
+                    <select id="pilar_processos">
+                        <option value="0">🔴 Não possuo / Processo 100% manual ou inexistente</option>
+                        <option value="5">🟡 Parcialmente estruturado / Depende da memória de pessoas</option>
+                        <option value="10">🟢 100% Automatizado / Processo padronizado e documentado</option>
+                    </select>
+                </div>
 
-            <button type="button" onclick="enviarDiagnostico()">Gerar Meu Diagnóstico Gratuito</button>
+                <div class="pilar-box">
+                    <div class="pilar-title">Pilar 3: Métricas, Produtividade e Previsibilidade</div>
+                    <p id="txtPerguntaP3" style="font-size: 14px; margin-bottom: 12px; color: #4b5563;"></p>
+                    <select id="pilar_metricas">
+                        <option value="0">🔴 Não possuo / Processo 100% manual ou inexistente</option>
+                        <option value="5">🟡 Parcialmente estruturado / Depende da memória de pessoas</option>
+                        <option value="10">🟢 100% Automatizado / Processo padronizado e documentado</option>
+                    </select>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn-secondary" onclick="voltarParaDados()">Voltar</button>
+                    <button type="button" class="btn-primary" onclick="enviarDiagnosticoCompleto()">Calcular Score & Enviar Relatórios</button>
+                </div>
+            </div>
         </form>
 
         <div id="resultado" class="result-box"></div>
     </div>
 
     <script>
-        function alternarCampos() {
-            const frente = document.getElementById("frente_atuacao").value;
-            const campoDominio = document.getElementById("campoDominio");
-            campoDominio.style.display = (frente === "COMERCIAL") ? "none" : "flex";
+        // BANCO DE PERGUNTAS EXTRAÍDO DA MATRIZ DE 70 PERGUNTAS DA METODOLOGIA ARCA
+        const matrizPerguntas = {
+            MARKETING_VENDAS: {
+                titulo: "Marketing e Vendas",
+                p1: "A empresa possui uma definição clara de Perfil de Cliente Ideal (ICP) ou vende para qualquer segmento que demonstre interesse?",
+                p2: "Existe uma cadência padrão de tentativas de contato (LinkedIn, e-mail, telefone) estruturada antes do time desistir de um lead?",
+                p3: "O volume de novas oportunidades geradas no topo do funil este mês é previsível e suficiente para bater as metas de crescimento?"
+            },
+            FISCAL_TRIBUTARIO: {
+                titulo: "Fiscal e Tributário",
+                p1: "A empresa possui um planejamento tributário estratégico atualizado (Lucro Real/Presumido) ou apenas cumpre as guias geradas mensalmente?",
+                p2: "Há uma rotina interna de conciliação diária/semanal dos dados fiscais ou os documentos acumulam para a semana de fechamento?",
+                p3: "O negócio monitora com precisão o impacto da carga tributária sobre a margem de lucro líquida de cada produto/serviço vendido?"
+            },
+            GESTION_TIMES: {
+                titulo: "Gestão de Empresas e Times",
+                p1: "Os papéis, responsabilidades e lideranças dos times estão documentados ou os processos dependem da centralização dos diretores?",
+                p2: "A distribuição de tarefas e entregas das equipes é monitorada por sistemas visuais (ex: Kanban) ou é controlada por planilhas e cobranças verbais?",
+                p3: "A empresa possui indicadores claros de performance (KPIs) por colaborador para medir a produtividade real de forma previsível?"
+            },
+            TECNOLOGIA: {
+                titulo: "Tecnologia e Automações",
+                p1: "A infraestrutura tecnológica (servidores, redes, desktops e celulares) possui políticas de segurança mapeadas ou opera sem travas claras?",
+                p2: "A empresa conta com rotinas automáticas de backup em nuvem testadas e sistemas de CRM/integração integrados ou os processos são manuais e isolados?",
+                p3: "O tempo de inatividade das ferramentas tecnológicas (Downtime) é monitorado e existem planos de contingência preventiva para evitar prejuízos financeiros?"
+            }
+        };
+
+        // MÁSCARA EM TEMPO REAL PARA QUALIFICAÇÃO DO WHATSAPP
+        function aplicarMascaraZap(input) {
+            let value = input.value.replace(/\D/g, "");
+            if (value.length > 11) value = value.slice(0, 11);
+            if (value.length > 6) {
+                input.value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7)}`;
+            } else if (value.length > 2) {
+                input.value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+            } else {
+                input.value = value;
+            }
         }
 
-        async function enviarDiagnostico() {
+        function validarEmail() {
+            const email = document.getElementById("email").value;
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const descartaveis = ["mailinator.com", "yopmail.com", "10minutemail.com"];
+            
+            if (email && !regex.test(email)) {
+                alert("Por favor, informe um endereço de e-mail estruturalmente válido.");
+                return false;
+            }
+            const dominio = email.split("@")[1];
+            if (descartaveis.includes(dominio)) {
+                alert("E-mails descartáveis ou temporários não são aceitos para a emissão do diagnóstico.");
+                document.getElementById("email").value = "";
+                return false;
+            }
+            return true;
+        }
+
+        function validarZap() {
+            const zap = document.getElementById("whatsapp").value.replace(/\D/g, "");
+            if (zap && zap.length < 10) {
+                alert("O número de WhatsApp informado está incompleto. Certifique-se de incluir o DDD.");
+                return false;
+            }
+            return true;
+        }
+
+        function atualizarPerguntasDinamicas() {
+            const area = document.getElementById("area_desejada").value;
+            document.getElementById("tituloAreaForm").innerText = `Análise em ${matrizPerguntas[area].titulo}`;
+            document.getElementById("txtPerguntaP1").innerText = matrizPerguntas[area].p1;
+            document.getElementById("txtPerguntaP2").innerText = matrizPerguntas[area].p2;
+            document.getElementById("txtPerguntaP3").innerText = matrizPerguntas[area].p3;
+        }
+
+        function avancarParaPerguntas() {
+            const empresa = document.getElementById("empresa").value;
+            const responsavel = document.getElementById("responsavel").value;
+            const email = document.getElementById("email").value;
+            const whatsapp = document.getElementById("whatsapp").value;
+
+            if (!empresa || !responsavel || !email || !whatsapp) {
+                alert("Todos os campos cadastrais de contato são obrigatórios para avançar.");
+                return;
+            }
+            if (!validarEmail() || !validarZap()) return;
+
+            atualizarPerguntasDinamicas();
+            document.getElementById("step1").classList.remove("active");
+            document.getElementById("step2").classList.add("active");
+        }
+
+        function voltarParaDados() {
+            document.getElementById("step2").classList.remove("active");
+            document.getElementById("step1").classList.add("active");
+        }
+
+        async function enviarDiagnosticoCompleto() {
             const payload = {
                 empresa: document.getElementById("empresa").value,
                 responsavel: document.getElementById("responsavel").value,
-                frente_atuacao: document.getElementById("frente_atuacao").value,
-                usa_dominio: document.getElementById("usa_dominio").checked,
-                score_arca: parseInt(document.getElementById("score_arca").value),
+                email: document.getElementById("email").value,
+                whatsapp: document.getElementById("whatsapp").value.replace(/\D/g, ""),
+                area_desejada: document.getElementById("area_desejada").value,
+                pilar_icp: parseInt(document.getElementById("pilar_icp").value),
+                pilar_processos: parseInt(document.getElementById("pilar_processos").value),
+                pilar_metricas: parseInt(document.getElementById("pilar_metricas").value),
                 dor_mapeada: document.getElementById("dor_mapeada").value
             };
 
-            if(!payload.empresa || !payload.responsavel) {
-                alert("Por favor, preencha a Empresa e o Responsável.");
-                return;
-            }
-
-            const response = await fetch('/diagnostico/processar', {
+            const response = await fetch('/diagnostico/processar/pilares', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -90,32 +230,30 @@
             const data = await response.json();
             const resultBox = document.getElementById("resultado");
             
-            // Determina a classe de cor com base na prioridade comercial retornada pelo FastAPI
-            let classePrioridade = "MÉDIA";
-            if (data.roteamento_comercial.prioridade_atendimento.includes("CRÍTICA")) classePrioridade = "CRÍTICA";
-            if (data.roteamento_comercial.prioridade_atendimento.includes("ALTA")) classePrioridade = "ALTA";
-
-            resultBox.className = `result-box prioridade-${classePrioridade}`;
+            resultBox.className = `result-box prioridade-${data.classificacao}`;
             resultBox.style.display = "block";
 
-            // Monta o HTML dinâmico com o Roadmap calculado pelo backend
-            let roadmapHTML = "";
-            data.entregaveis_gerados.roadmap_de_melhorias_dinamico.forEach(item => {
-                roadmapHTML += `<li>${item}</li>`;
-            });
-
             resultBox.innerHTML = `
-                <h3>📋 Resultado do Seu Score ARCA: ${data.entregaveis_gerados.score_arca}</h3>
-                <p><strong>Status da Operação:</strong> ${data.roteamento_comercial.prioridade_atendimento}</p>
-                <p><strong>Análise:</strong> ${data.entregaveis_gerados.relatorio_executivo}</p>
+                <h3 style="margin-top:0;">📊 Seu Score ARCA Calculado: ${data.score_arca}</h3>
+                <p><strong>Classificação do Risco Comercial:</strong> ${data.classificacao}</p>
+                <p><strong>Análise Macro:</strong> ${data.mensagem_analise}</p>
                 <hr>
-                <h4>🚀 Roadmap de Melhorias Recomendado:</h4>
-                <ul>${roadmapHTML}</ul>
+                <p style="font-size: 14px; line-height: 1.5; color: #374151;">
+                    <strong>🚀 Entrega Condicional Ativada:</strong><br>
+                    O Relatório Executivo Macro e a introdução ao seu Roadmap Estratégico de Melhorias foram compactados e disparados de forma segura!
+                </p>
+                <ul>
+                    <li>📱 <strong>WhatsApp:</strong> ${data.envio_canais.whatsapp_status}</li>
+                    <li>📧 <strong>E-mail:</strong> ${data.envio_canais.email_status}</li>
+                </ul>
                 <hr>
-                <p style="font-size:13px; text-align:center; margin:0;">
-                    <em>${data.roteamento_comercial.ancoragem_comercial}</em>
+                <p style="font-size: 12px; text-align: center; margin: 0; color: #6b7280;">
+                    <em>Para validação humana profunda com nossos diretores, consulte nossa tabela comercial de upsell.</em>
                 </p>
             `;
+            
+            // Rola a tela até o resultado
+            resultBox.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>
