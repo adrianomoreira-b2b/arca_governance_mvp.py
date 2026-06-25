@@ -1,9 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,9 +16,9 @@ TITLE = os.getenv("PROJECT_TITLE", "ARCA Governance Engine")
 
 app = FastAPI(title=TITLE, version=VERSION)
 
-banco_leads = []
+EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE")
+EMAIL_SENHA_APP = os.getenv("EMAIL_SENHA_APP")
 
-# Modelo de dados atualizado para suportar a engenharia do Agente de IA
 class PayloadDiagnosticoARCA(BaseModel):
     empresa: str
     responsavel: str
@@ -27,6 +30,40 @@ class PayloadDiagnosticoARCA(BaseModel):
     score_pilar_c: float
     score_pilar_a2: float
     dor_mapeada: Optional[str] = None
+
+def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str):
+    """Função atualizada usando a porta de segurança SSL 465 contra bloqueios de servidores cloud."""
+    if not EMAIL_REMETENTE or not EMAIL_SENHA_APP:
+        print("⚠️ Credenciais de e-mail ausentes nas variáveis de ambiente.")
+        return False
+    try:
+        # Montagem do e-mail do Lead
+        msg = MIMEMultipart()
+        msg['From'] = EMAIL_REMETENTE
+        msg['To'] = destinatario_lead
+        msg['Subject'] = assunto
+        msg.attach(MIMEText(corpo_texto, 'plain', 'utf-8'))
+
+        # Montagem da sua Cópia Administrativa
+        msg_copia = MIMEMultipart()
+        msg_copia['From'] = EMAIL_REMETENTE
+        msg_copia['To'] = EMAIL_REMETENTE 
+        msg_copia['Subject'] = f"🚨 [CÓPIA LEAD ARCA] - {assunto}"
+        msg_copia.attach(MIMEText(corpo_texto, 'plain', 'utf-8'))
+
+        # ALTERADO: Uso do SMTP_SSL na porta 465 para forçar a passagem no Render
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(EMAIL_REMETENTE, EMAIL_SENHA_APP)
+        
+        server.sendmail(EMAIL_REMETENTE, destinatario_lead, msg.as_string())
+        server.sendmail(EMAIL_REMETENTE, EMAIL_REMETENTE, msg_copia.as_string())
+        
+        server.quit()
+        print("✅ E-mails enviados com sucesso via SSL (Porta 465)!")
+        return True
+    except Exception as e:
+        print(f"❌ Erro na porta 465 SMTP: {str(e)}")
+        return False
 
 @app.get("/", response_class=HTMLResponse)
 def carregar_aplicativo_visual():
@@ -42,49 +79,59 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
     
     if score_total <= 40:
         classificacao = "CRÍTICA"
-        analise_base = "Operação Comercial desorganizada com vazamento de receita e perdas ocultas graves."
+        analise_base = "Operação desorganizada com vazamento de faturamento e perdas ocultas graves."
     elif score_total <= 75:
         classificacao = "ALTA"
         analise_base = "Apresenta gargalos de processos e dependência severa de execução manual."
     else:
         classificacao = "MÉDIA"
-        analise_base = "Nível de maturidade estável, necessitando apenas de automação de CRM e travas de governança."
+        analise_base = "Nível de maturidade estável, necessitando apenas de automação fina e travas de governança."
 
-    # PROCESSAMENTO SIMULADO DO AGENTE DE IA (Molda o relatório usando a dor real inserida pelo usuário)
     dor_usuario = dados.dor_mapeada if dados.dor_mapeada else "Não especificada textualmente."
+    relatorio_agente_ia = f"Identificamos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 obtido. {analise_base} O Framework ARCA identificou que a falta de padrões estruturados está drenando a margem de lucro da sua operação atual."
+
+    corpo_email_formatado = f"""
+    Olá, {dados.responsavel}, tudo bem?
     
-    relatorio_agente_ia = f"""
-    [Análise Gerada pelo Agente de IA ARCA]: Identificamos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 obtido. {analise_base} O Framework ARCA identificou que a falta de padrões estruturados está drenando a margem de lucro da sua operação atual.
+    Segue o relatório técnico gerado automaticamente pelo Agente de IA do Framework ARCA para a empresa {dados.empresa}.
+    
+    ----------------------------------------------------------------------
+    📊 DETALHES DO SEU DIAGNÓSTICO CORPORATIVO
+    ----------------------------------------------------------------------
+    🏢 Empresa Auditada: {dados.empresa}
+    👤 Responsável Técnico: {dados.responsavel}
+    📱 WhatsApp para contato: {dados.whatsapp}
+    🎯 Escopo Avaliado: {dados.diagnostico_tipo}
+    
+    📈 SCORE ARCA TOTAL: {score_total} de 100 pontos possíveis.
+    ⚠️ NÍVEL DE PRIORIDADE/RISCO: {classificacao}
+    
+    🤖 ANÁLISE DO AGENTE DE IA:
+    {relatorio_agente_ia}
+    
+    ----------------------------------------------------------------------
+    🚀 PRÓXIMO PASSO RECOMENDADO:
+    Para estruturar o seu plano de ação de 90 dias e estancar os gargalos mapeados, agende sua sessão estratégica de 30 minutos com o consultor Adriano Moreira clicando no link abaixo:
+    https://calendar.app.google/C1d44pbpqbLmU17m7
+    
+    Atenciosamente,
+    Equipe ARCA Governance & Grupo Gestão Integrada
     """
 
-    novo_lead = {
-        "id": len(banco_leads) + 1,
-        "empresa": dados.empresa,
-        "responsavel": dados.responsavel,
-        "email": dados.email,
-        "whatsapp": dados.whatsapp,
-        "tipo": dados.diagnostico_tipo,
-        "score_arca": score_total,
-        "classificacao": classificacao,
-        "analise_ia": relatorio_agente_ia.strip(),
-        "data_captura": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-    banco_leads.append(novo_lead)
+    envio_sucesso = disparar_emails_reais(
+        destinatario_lead=dados.email,
+        assunto=f"Seu Resultado do Diagnóstico ARCA - {dados.empresa}",
+        corpo_texto=corpo_email_formatado.strip()
+    )
 
-    # LOG COMERCIAL NO TERMINAL DE PRODUÇÃO
-    print("\n" + "="*70)
-    print(f"🤖 [AGENTE DE IA] ANALISANDO RESPOSTAS DE: {dados.responsavel} ({dados.empresa})")
-    print(f"💡 Dor Interpretada pela IA: '{dor_usuario}'")
-    print(f"📊 Relatório Customizado Enviado para {dados.email} e WhatsApp {dados.whatsapp}")
-    print("="*70 + "\n")
+    status_email = f"Enviado para {dados.email} (com cópia para a diretoria)" if envio_sucesso else "Processado (verifique os logs de conexão do servidor)"
 
     return {
-        "status": "Auditoria Processada pelo Agente de IA",
         "score_arca": score_total,
         "classificacao": classificacao,
-        "analise_macro": relatorio_agente_ia.strip(),
+        "analise_macro": relatorio_agente_ia,
         "confirmacao_envio": {
-            "email_status": f"Relatório Técnico compactado e enviado para {dados.email}",
-            "whatsapp_status": f"Roadmap de melhorias e considerações enviado para {dados.whatsapp}"
+            "email_status": status_email,
+            "whatsapp_status": "Roadmap de melhorias disponibilizado."
         }
     }
