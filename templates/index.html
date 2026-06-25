@@ -3,202 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARCA Governance - Autodiagnóstico Automatizado</title>
+    <title>ARCA Governance - Diagnóstico Estruturado</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 650px; }
-        h1 { color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 28px; }
-        p.subtitle { text-align: center; color: #4b5563; margin-bottom: 30px; font-size: 15px; }
+        .container { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 700px; }
+        h1 { color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 26px; font-weight: bold; }
+        p.subtitle { text-align: center; color: #4b5563; margin-bottom: 30px; font-size: 14px; }
         .step { display: none; }
         .step.active { display: block; }
-        label { font-weight: 600; display: block; margin-top: 20px; margin-bottom: 8px; color: #374151; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: #f9fafb; transition: all 0.3s; }
-        input:focus, select:focus, textarea:focus { border-color: #2563eb; background-color: #fff; outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-        .pilar-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 15px; }
-        .pilar-title { font-weight: bold; color: #1e3a8a; margin-bottom: 10px; font-size: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+        label { font-weight: 600; display: block; margin-top: 15px; margin-bottom: 5px; color: #374151; }
+        input, select, textarea { width: 100%; padding: 11px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: #f9fafb; }
+        .pilar-section { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .pilar-header { font-weight: bold; color: #1e3a8a; font-size: 16px; border-bottom: 2px solid #cbd5e1; padding-bottom: 6px; margin-bottom: 15px; }
+        .question-block { margin-bottom: 15px; }
+        .question-text { font-size: 14px; color: #4b5563; margin-bottom: 6px; font-weight: 500; }
         .btn-group { display: flex; justify-content: space-between; margin-top: 30px; gap: 10px; }
-        button { flex: 1; padding: 14px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.3s; border: none; }
+        button { flex: 1; padding: 14px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; border: none; }
         .btn-primary { background: #1e3a8a; color: white; }
         .btn-primary:hover { background: #1d4ed8; }
         .btn-secondary { background: #e5e7eb; color: #4b5563; }
-        .btn-secondary:hover { background: #d1d5db; }
         .result-box { margin-top: 30px; padding: 25px; border-radius: 8px; display: none; }
         .prioridade-CRÍTICA { background-color: #fee2e2; border-left: 6px solid #dc2626; color: #991b1b; }
         .prioridade-ALTA { background-color: #ffedd5; border-left: 6px solid #ea580c; color: #9a3412; }
         .prioridade-MÉDIA { background-color: #f0fdf4; border-left: 6px solid #16a34a; color: #14532d; }
-        hr { border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 20px 0; }
-        ul { padding-left: 20px; }
-        li { margin-bottom: 8px; line-height: 1.5; }
+        footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 13px; color: #6b7280; }
+        footer a { color: #1e3a8a; text-decoration: none; font-weight: bold; margin: 0 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>ARCA Governance</h1>
-        <p class="subtitle">Autodiagnóstico Automatizado</p>
+        <p class="subtitle">Sistema de Autodiagnóstico Automatizado</p>
         
-        <form id="formDiagnostico">
+        <form id="formPrincipal">
             <div id="step1" class="step active">
                 <label>Nome da Empresa:</label>
-                <input type="text" id="empresa" required placeholder="Ex: Gestão Alfa Consultoria">
+                <input type="text" id="empresa" required placeholder="Ex: Indikos Consultoria B2B">
 
                 <label>Seu Nome / Responsável:</label>
-                <input type="text" id="responsavel" required placeholder="Ex: Mariana Souza">
+                <input type="text" id="responsavel" required placeholder="Ex: Adriano Moreira">
 
                 <label>E-mail Corporativo:</label>
-                <input type="email" id="email" required placeholder="Ex: nome@empresa.com.br" onblur="validarEmail()">
+                <input type="email" id="email" required placeholder="Ex: adriano@indikos.com.br">
 
                 <label>WhatsApp Comercial:</label>
-                <input type="text" id="whatsapp" required placeholder="Ex: (11) 99999-9999" oninput="aplicarMascaraZap(this)" onblur="validarZap()">
+                <input type="text" id="whatsapp" required placeholder="Ex: 11999999999">
 
                 <label>Selecione Diagnóstico:</label>
-                <select id="area_desejada" onchange="atualizarPerguntasDinamicas()">
-                    <option value="MARKETING_VENDAS">Diagnóstico em Marketing e Vendas</option>
-                    <option value="FISCAL_TRIBUTARIO">Diagnóstico Fiscal e Tributário</option>
-                    <option value="GESTION_TIMES">Diagnóstico em Gestão de Empresas e Times</option>
+                <select id="diagnostico_tipo">
+                    <option value="VENDAS">Diagnóstico em Marketing e Vendas</option>
+                    <option value="FISCAL">Diagnóstico Fiscal e Tributário</option>
+                    <option value="GOVERNANCA">Diagnóstico em Gestão de Empresas e Times</option>
                     <option value="TECNOLOGIA">Diagnóstico em Tecnologia</option>
                 </select>
 
                 <label>Qual a sua principal dor ou gargalo atual?</label>
-                <textarea id="dor_mapeada" rows="2" placeholder="Ex: Processos manuais e falta de clareza nas metas..."></textarea>
+                <textarea id="dor_mapeada" rows="2" placeholder="Ex: Falta de processos claros no comercial..."></textarea>
 
                 <div class="btn-group">
-                    <button type="button" class="btn-primary" onclick="avancarParaPerguntas()">Responder Questionário Estruturado</button>
+                    <button type="button" class="btn-primary" onclick="construirQuestionario()">Avançar para Questionário Estruturado</button>
                 </div>
             </div>
 
             <div id="step2" class="step">
-                <h3 style="text-align: center; color: #1e3a8a; margin-top: 0;" id="tituloAreaForm">Pilares de Análise</h3>
-                
-                <div class="pilar-box">
-                    <div class="pilar-title">Pilar 1: Posicionamento e Perfil de Cliente Ideal (ICP)</div>
-                    <p id="txtPerguntaP1" style="font-size: 14px; margin-bottom: 12px; color: #4b5563;"></p>
-                    <select id="pilar_icp">
-                        <option value="0">🔴 Não possuo / Processo 100% manual ou inexistente</option>
-                        <option value="5">🟡 Parcialmente estruturado / Depende da memória de pessoas</option>
-                        <option value="10">🟢 100% Automatizado / Processo padronizado e documentado</option>
-                    </select>
-                </div>
-
-                <div class="pilar-box">
-                    <div class="pilar-title">Pilar 2: Processos e Cadência Comercial</div>
-                    <p id="txtPerguntaP2" style="font-size: 14px; margin-bottom: 12px; color: #4b5563;"></p>
-                    <select id="pilar_processos">
-                        <option value="0">🔴 Não possuo / Processo 100% manual ou inexistente</option>
-                        <option value="5">🟡 Parcialmente estruturado / Depende da memória de pessoas</option>
-                        <option value="10">🟢 100% Automatizado / Processo padronizado e documentado</option>
-                    </select>
-                </div>
-
-                <div class="pilar-box">
-                    <div class="pilar-title">Pilar 3: Métricas, Produtividade e Previsibilidade</div>
-                    <p id="txtPerguntaP3" style="font-size: 14px; margin-bottom: 12px; color: #4b5563;"></p>
-                    <select id="pilar_metricas">
-                        <option value="0">🔴 Não possuo / Processo 100% manual ou inexistente</option>
-                        <option value="5">🟡 Parcialmente estruturado / Depende da memória de pessoas</option>
-                        <option value="10">🟢 100% Automatizado / Processo padronizado e documentado</option>
-                    </select>
-                </div>
-
+                <div id="containerPerguntasDinamicas"></div>
                 <div class="btn-group">
                     <button type="button" class="btn-secondary" onclick="voltarParaDados()">Voltar</button>
-                    <button type="button" class="btn-primary" onclick="enviarDiagnosticoCompleto()">Calcular Score & Enviar Relatórios</button>
+                    <button type="button" class="btn-primary" onclick="calcularEEnviar()">Calcular Score & Enviar Relatórios</button>
                 </div>
             </div>
         </form>
 
         <div id="resultado" class="result-box"></div>
+
+        <footer>
+            <p>© 2026 Grupo Gestão Integrada. Todos os direitos reservados.</p>
+            <a href="http://www.indikos.com.br" target="_blank">Acesse o Site</a> | 
+            <a href="https://www.linkedin.com/in/adrianomoreiraconsultor/" target="_blank">LinkedIn Adriano Moreira</a>
+        </footer>
     </div>
 
     <script>
-        // BANCO DE PERGUNTAS EXTRAÍDO DA MATRIZ DE 70 PERGUNTAS DA METODOLOGIA ARCA
-        const matrizPerguntas = {
-            MARKETING_VENDAS: {
-                titulo: "Marketing e Vendas",
-                p1: "A empresa possui uma definição clara de Perfil de Cliente Ideal (ICP) ou vende para qualquer segmento que demonstre interesse?",
-                p2: "Existe uma cadência padrão de tentativas de contato (LinkedIn, e-mail, telefone) estruturada antes do time desistir de um lead?",
-                p3: "O volume de novas oportunidades geradas no topo do funil este mês é previsível e suficiente para bater as metas de crescimento?"
+        // BANCO DE DADOS MASTER DE PERGUNTAS DO FRAMEWORK ARCA
+        const bancoPerguntas = {
+            VENDAS: {
+                A1: [
+                    "Os motivos de perda de negócios (Loss Reason) são auditados sistematicamente no CRM ou sumem sem explicação técnica?",
+                    "A empresa possui um ICP documentado com travas de qualificação ou o time tenta vender para qualquer segmento?",
+                    "Você sabe exatamente em qual etapa do funil a maior parte dos seus leads é perdida hoje?",
+                    "Os diferenciais competitivos e dores do cliente estão estruturados em um material oficial (One-Pager / Playbook)?",
+                    "Todo o histórico de interações com o cliente fica centralizado em um sistema ou está espalhado nos WhatsApps particulares?"
+                ],
+                R: [
+                    "Existe um canal ativo de captação que gera um volume previsível e constante de novas oportunidades todas as semanas?",
+                    "O seu modelo comercial possui ofertas estruturadas para gerar receita previsível/recorrente (LTV/MRR)?",
+                    "Há um fluxo contínuo de pesquisa e abordagem de contas estratégicas (Cold Outbound) executado por SDRs/BDRs?",
+                    "Existem regras rígidas para concessão de descontos baseadas em valor ou o preço é flexibilizado livremente?",
+                    "Existe um processo desenhado para vender novos produtos ou serviços para a base atual de clientes de forma ativa?"
+                ],
+                C: [
+                    "O CRM possui travas operacionais que impedem o vendedor de avançar um lead de etapa sem preencher dados obrigatórios?",
+                    "O time executa uma cadência padrão e organizada de tentativas de contato ou desiste após a primeira tentativa?",
+                    "O time comercial segue um roteiro estruturado de perguntas para descobrir a dor profunda do lead?",
+                    "O sistema avisa o vendedor automaticamente quando um lead esfria ou quando uma proposta passa do prazo?",
+                    "A transição do lead qualificado pelo SDR para o Closer é documentada e fluida, sem perda de informações?"
+                ],
+                A2: [
+                    "Existem reuniões semanais obrigatórias e rígidas de revisão de pipeline com a liderança (Forecast)?",
+                    "Os indicadores de conversão (taxas de agendamento, propostas, fechamento) são atualizados automaticamente?",
+                    "As metas globais de faturamento estão desdobradas em metas diárias/semanais de atividades operacionais?",
+                    "A liderança consegue identificar instantaneamente qual vendedor está performando abaixo da média?",
+                    "Existe um processo de ouvir gravações de reuniões ou ler históricos para garantir que o método está sendo executado?"
+                ]
             },
-            FISCAL_TRIBUTARIO: {
-                titulo: "Fiscal e Tributário",
-                p1: "A empresa possui um planejamento tributário estratégico atualizado (Lucro Real/Presumido) ou apenas cumpre as guias geradas mensalmente?",
-                p2: "Há uma rotina interna de conciliação diária/semanal dos dados fiscais ou os documentos acumulam para a semana de fechamento?",
-                p3: "O negócio monitora com precisão o impacto da carga tributária sobre a margem de lucro líquida de cada produto/serviço vendido?"
+            FISCAL: {
+                A1: [
+                    "O escritório possui um inventário ou mapeamento claro dos riscos fiscais ativos na carteira de clientes?",
+                    "A liderança sabe com precisão o que cada colaborador está fazendo hoje e quantas horas são gastas por empresa?",
+                    "Existe uma auditoria interna para descobrir quais processos estão gerando retrabalho de digitação no setor fiscal?",
+                    "Os gargalos e atrasos que geram sobrecarga nas semanas de pico de impostos estão mapeados por analista?",
+                    "Vocês sabem quais clientes da base demandam mais horas manuais do que o honorário pago cobre?"
+                ],
+                R: [
+                    "O planejamento tributário e as revisões fiscais são vendidos como consultorias recorrentes e estratégicas?",
+                    "O escritório consegue cobrar mais caro por se posicionar como um parceiro ultraparametrizado e ágil?",
+                    "A automação e a promessa de parametrização zero-papel são utilizadas como o principal argumento de vendas?",
+                    "Existe um processo desenhado para oferecer serviços de auditoria profunda e reorganização fiscal para a base?",
+                    "O modelo comercial do escritório garante previsibilidade de caixa através de entregas de inteligência fiscal contínua?"
+                ],
+                C: [
+                    "A parametrização de impostos dentro do sistema (como o Domínio) evita digitação e cálculos manuais nas guias?",
+                    "O escritório utiliza robôs ou APIs conectadas ao sistema Domínio para captura automatizada de documentos fiscais?",
+                    "Os lançamentos contábeis são importados e integrados diretamente através do sistema de gestão do cliente?",
+                    "Existem playbooks operacionais rígidos ditando como cada rotina de apuração deve ser executada no sistema?",
+                    "Existem travas sistêmicas e cruzamentos digitais automáticos que impedem lançamentos com códigos fiscais incompatíveis?"
+                ],
+                A2: [
+                    "Os balancetes e relatórios macro de inteligência são gerados de forma automática no sistema em tempo hábil?",
+                    "Existem reuniões e rituais rígidos semanais para auditar o status das transmissões e a conformidade das empresas?",
+                    "A diretoria possui indicadores em tempo real para avaliar o volume de entregas e eficiência de cada colaborador?",
+                    "O cumprimento do calendário fiscal e contábil é monitorado por sistemas centralizados e visuais (Gclick/Kanban)?",
+                    "Existe uma rotina rígida aplicada pela liderança para auditar se a equipe está utilizando as automações do sistema Domínio?"
+                ]
             },
-            GESTION_TIMES: {
-                titulo: "Gestão de Empresas e Times",
-                p1: "Os papéis, responsabilidades e lideranças dos times estão documentados ou os processos dependem da centralização dos diretores?",
-                p2: "A distribuição de tarefas e entregas das equipes é monitorada por sistemas visuais (ex: Kanban) ou é controlada por planilhas e cobranças verbais?",
-                p3: "A empresa possui indicadores claros de performance (KPIs) por colaborador para medir a produtividade real de forma previsível?"
+            GOVERNANCA: {
+                A1: [
+                    "Os papéis, organogramas e responsabilidades de cada função estão documentados de forma clara e acessível?",
+                    "O negócio consegue operar e tomar decisões críticas por mais de 15 dias sem a presença ou aprovação direta do dono?",
+                    "Existe um diagnóstico claro sobre o nível de preparo técnico e de gestão de cada líder de setor?",
+                    "Há um mapeamento formal e recorrente para identificar ruídos de comunicação e desalinhamentos entre as equipes?",
+                    "Quando um colaborador chave se desliga, o conhecimento e o histórico da função permanecem arquivados na empresa?"
+                ],
+                R: [
+                    "As metas globais de faturamento, retenção e expansão da empresa estão desdobradas em planos de ação individuais?",
+                    "Existe um modelo de remuneração variável ou incentivos atrelado diretamente ao atingimento de metas estratégicas?",
+                    "Cada setor entende perfeitamente como sua produtividade diária afeta diretamente a margem de lucro?",
+                    "Você sabe exatamente qual é o limite de entrega de cada equipe antes de precisar inflar a folha de pagamento?",
+                    "A empresa possui um plano estratégico de crescimento focado em reter talentos chave contra o turnover?"
+                ],
+                C: [
+                    "Os fluxos operacionais e as tarefas diárias são gerenciados de forma transparente em ferramentas visuais (Kanban)?",
+                    "O time possui acesso a playbooks de execução estruturados para resolver problemas correeiros sem acionar a diretoria?",
+                    "Existem reuniões curtas e padronizadas de alinhamento de metas e prioridades (Daily/Weekly)?",
+                    "O sistema gerencial ou de tarefas emite alertas automáticos de atraso antes que a entrega chegue ao cliente?",
+                    "Os seus líderes possuem processos diários claros de acompanhamento das suas equipes?"
+                ],
+                A2: [
+                    "A empresa possui um modelo de governança com indicadores de produtividade atualizados automaticamente em tempo real?",
+                    "Existem rituais rígidos e semanais de prestação de contas para auditar os números sem espaço para desculpas?",
+                    "A liderança possui relatórios exatos de produtividade individual por analista para dar feedbacks baseados em dados?",
+                    "Há um processo rígido para identificar e corrigir instantaneamente qualquer desvio de meta ou quebra de processo?",
+                    "A diretoria executa auditorias de ponta a ponta nas entregas para garantir que a governança rígida está sendo executada?"
+                ]
             },
             TECNOLOGIA: {
-                titulo: "Tecnologia e Automações",
-                p1: "A infraestrutura tecnológica (servidores, redes, desktops e celulares) possui políticas de segurança mapeadas ou opera sem travas claras?",
-                p2: "A empresa conta com rotinas automáticas de backup em nuvem testadas e sistemas de CRM/integração integrados ou os processos são manuais e isolados?",
-                p3: "O tempo de inatividade das ferramentas tecnológicas (Downtime) é monitorado e existem planos de contingência preventiva para evitar prejuízos financeiros?"
+                A1: [
+                    "Existe um inventário centralizado e atualizado de todos os softwares, licenças, servidores e ativos de segurança?",
+                    "A empresa possui um mapeamento claro de quais sistemas e hardwares estão obsoletos e atrasando a produtividade?",
+                    "A diretoria sabe exatamente quanto gasta com assinaturas de softwares duplicadas ou subutilizadas pelas equipes?",
+                    "Há um controle rígido sobre quais colaboradores possuem acesso a quais dados confidenciais ou senhas?",
+                    "As quedas de sinal, lentidões de servidores e problemas de infraestrutura local de rede estão documentados?"
+                ],
+                R: [
+                    "As ferramentas tecnológicas e sistemas atuais impulsionam ativamente a abertura de novos canais de receita?",
+                    "Os seus sistemas de TI atuais estão preparados para suportar um aumento de 3x no volume de transações?",
+                    "A sua infraestrutura de dados permite segmentar leads e disparar campanhas de forma inteligente?",
+                    "A empresa utiliza ferramentas de inteligência de dados (BI) para extrair insights comerciais da base atual?",
+                    "O orçamento de inovação e infraestrutura tecnológica é planejado estrategicamente para gerar retorno?"
+                ],
+                C: [
+                    "Existem conexões automáticas via API ligando os setores de marketing, comercial, operações e financeiro?",
+                    "Os processos cotidianos e repetitivos são executados por robôs ou gatilhos sistêmicos, reduzindo esforço humano?",
+                    "O sistema central de gestão funciona como uma 'fonte única da verdade', eliminando planilhas paralelas?",
+                    "O time possui manuais de conduta claros sobre como agir diante de uma falha sistêmica crítica?",
+                    "A configuração de novas máquinas, e-mails e acessos para novos funcionários é totalmente automatizada?"
+                ],
+                A2: [
+                    "Os backups em nuvem são 100% automatizados e testados/auditados preventivamente pela liderança?",
+                    "O tempo em que os sistemas ficam fora do ar (Downtime) e o prejuízo causado são monitorados?",
+                    "Existem rituais periódicos para testar a segurança das redes e firewalls contra ataques externos?",
+                    "O tempo de resolução de problemas técnicos internos é controlado por um painel de métricas real-time?",
+                    "Há uma governança contínua e sistêmica auditando se o tráfego cumpre as normas regulatórias de proteção de dados?"
+                ]
             }
         };
 
-        // MÁSCARA EM TEMPO REAL PARA QUALIFICAÇÃO DO WHATSAPP
-        function aplicarMascaraZap(input) {
-            let value = input.value.replace(/\D/g, "");
-            if (value.length > 11) value = value.slice(0, 11);
-            if (value.length > 6) {
-                input.value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7)}`;
-            } else if (value.length > 2) {
-                input.value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-            } else {
-                input.value = value;
-            }
-        }
+        function construirQuestionario() {
+            const tipo = document.getElementById("diagnostico_tipo").value;
+            const container = document.getElementById("containerPerguntasDinamicas");
+            container.innerHTML = ""; // Limpa estrutura anterior
 
-        function validarEmail() {
-            const email = document.getElementById("email").value;
-            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            const descartaveis = ["mailinator.com", "yopmail.com", "10minutemail.com"];
-            
-            if (email && !regex.test(email)) {
-                alert("Por favor, informe um endereço de e-mail estruturalmente válido.");
-                return false;
-            }
-            const dominio = email.split("@")[1];
-            if (descartaveis.includes(dominio)) {
-                alert("E-mails descartáveis ou temporários não são aceitos para a emissão do diagnóstico.");
-                document.getElementById("email").value = "";
-                return false;
-            }
-            return true;
-        }
+            const pilares = [
+                { id: "A1", nome: "[A] ARQUITETURA DA REALIDADE" },
+                { id: "R", nome: "[R] RECEITA ESTRATÉGICA" },
+                { id: "C", nome: "[C] EXECUÇÃO ESTRUTURADA" },
+                { id: "A2", nome: "[A] ACELERAÇÃO E CONTROLE" }
+            ];
 
-        function validarZap() {
-            const zap = document.getElementById("whatsapp").value.replace(/\D/g, "");
-            if (zap && zap.length < 10) {
-                alert("O número de WhatsApp informado está incompleto. Certifique-se de incluir o DDD.");
-                return false;
-            }
-            return true;
-        }
+            pilares.forEach(pilar => {
+                let htmlBloco = `<div class="pilar-section">
+                    <div class="pilar-header">${pilar.nome}</div>`;
+                
+                bancoPerguntas[tipo][pilar.id].forEach((pergunta, index) => {
+                    htmlBloco += `
+                        <div class="question-block">
+                            <div class="question-text">${index + 1}. ${pergunta}</div>
+                            <select class="resposta-arca" data-pilar="${pilar.id}">
+                                <option value="0">🔴 Não possuo / Processo manual ou inexistente (0 pts)</option>
+                                <option value="2.5">🟡 Parcialmente estruturado / Depende de pessoas (2.5 pts)</option>
+                                <option value="5">🟢 100% Automatizado / Processo padronizado e documentado (5 pts)</option>
+                            </select>
+                        </div>`;
+                });
 
-        function atualizarPerguntasDinamicas() {
-            const area = document.getElementById("area_desejada").value;
-            document.getElementById("tituloAreaForm").innerText = `Análise em ${matrizPerguntas[area].titulo}`;
-            document.getElementById("txtPerguntaP1").innerText = matrizPerguntas[area].p1;
-            document.getElementById("txtPerguntaP2").innerText = matrizPerguntas[area].p2;
-            document.getElementById("txtPerguntaP3").innerText = matrizPerguntas[area].p3;
-        }
+                htmlBloco += `</div>`;
+                container.innerHTML += htmlBloco;
+            });
 
-        function avancarParaPerguntas() {
-            const empresa = document.getElementById("empresa").value;
-            const responsavel = document.getElementById("responsavel").value;
-            const email = document.getElementById("email").value;
-            const whatsapp = document.getElementById("whatsapp").value;
-
-            if (!empresa || !responsavel || !email || !whatsapp) {
-                alert("Todos os campos cadastrais de contato são obrigatórios para avançar.");
-                return;
-            }
-            if (!validarEmail() || !validarZap()) return;
-
-            atualizarPerguntasDinamicas();
             document.getElementById("step1").classList.remove("active");
             document.getElementById("step2").classList.add("active");
         }
@@ -208,20 +249,30 @@
             document.getElementById("step1").classList.add("active");
         }
 
-        async function enviarDiagnosticoCompleto() {
+        async function calcularEEnviar() {
+            // Soma dinâmica dos pontos por pilar
+            let parciais = { A1: 0, R: 0, C: 0, A2: 0 };
+            const seletores = document.querySelectorAll(".resposta-arca");
+            
+            seletores.forEach(sel => {
+                const pilar = sel.getAttribute("data-pilar");
+                parciais[pilar] += parseFloat(sel.value);
+            });
+
             const payload = {
                 empresa: document.getElementById("empresa").value,
                 responsavel: document.getElementById("responsavel").value,
                 email: document.getElementById("email").value,
-                whatsapp: document.getElementById("whatsapp").value.replace(/\D/g, ""),
-                area_desejada: document.getElementById("area_desejada").value,
-                pilar_icp: parseInt(document.getElementById("pilar_icp").value),
-                pilar_processos: parseInt(document.getElementById("pilar_processos").value),
-                pilar_metricas: parseInt(document.getElementById("pilar_metricas").value),
+                whatsapp: document.getElementById("whatsapp").value,
+                diagnostico_tipo: document.getElementById("diagnostico_tipo").value,
+                score_pilar_a1: parciais.A1,
+                score_pilar_r: parciais.R,
+                score_pilar_c: parciais.C,
+                score_pilar_a2: parciais.A2,
                 dor_mapeada: document.getElementById("dor_mapeada").value
             };
 
-            const response = await fetch('/diagnostico/processar/pilares', {
+            const response = await fetch('/diagnostico/processar/completo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -234,25 +285,16 @@
             resultBox.style.display = "block";
 
             resultBox.innerHTML = `
-                <h3 style="margin-top:0;">📊 Seu Score ARCA Calculado: ${data.score_arca}</h3>
-                <p><strong>Classificação do Risco Comercial:</strong> ${data.classificacao}</p>
-                <p><strong>Análise Macro:</strong> ${data.mensagem_analise}</p>
+                <h3>📊 Seu Score ARCA Calculado: ${data.score_arca}/100</h3>
+                <p><strong>Nível de Risco:</strong> ${data.classificacao}</p>
+                <p><strong>Diagnóstico do Framework:</strong> ${data.analise_macro}</p>
                 <hr>
-                <p style="font-size: 14px; line-height: 1.5; color: #374151;">
-                    <strong>🚀 Entrega Condicional Ativada:</strong><br>
-                    O Relatório Executivo Macro e a introdução ao seu Roadmap Estratégico de Melhorias foram compactados e disparados de forma segura!
-                </p>
+                <p><strong>🔒 Verificação e Entrega Condicional:</strong></p>
                 <ul>
-                    <li>📱 <strong>WhatsApp:</strong> ${data.envio_canais.whatsapp_status}</li>
-                    <li>📧 <strong>E-mail:</strong> ${data.envio_canais.email_status}</li>
+                    <li>📧 ${data.confirmacao_envio.email_status}</li>
+                    <li>📱 ${data.confirmacao_envio.whatsapp_status}</li>
                 </ul>
-                <hr>
-                <p style="font-size: 12px; text-align: center; margin: 0; color: #6b7280;">
-                    <em>Para validação humana profunda com nossos diretores, consulte nossa tabela comercial de upsell.</em>
-                </p>
             `;
-            
-            // Rola a tela até o resultado
             resultBox.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
