@@ -7,8 +7,12 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 700px; }
-        h1 { color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 26px; font-weight: bold; }
-        p.subtitle { text-align: center; color: #4b5563; margin-bottom: 30px; font-size: 14px; }
+        
+        /* NOVO: DESIGN DO CABEÇALHO DINÂMICO PARA CADA MVP */
+        .mvp-header-banner { background-color: #1e3a8a; color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 25px; }
+        .mvp-header-banner h2 { margin: 0; font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mvp-header-banner p { margin: 8px 0 0 0; font-size: 14px; opacity: 0.9; font-style: italic; }
+
         .step { display: none; }
         .step.active { display: block; }
         label { font-weight: 600; display: block; margin-top: 15px; margin-bottom: 5px; color: #374151; }
@@ -27,15 +31,17 @@
         .prioridade-CRÍTICA { background-color: #fee2e2; border-left: 6px solid #dc2626; color: #991b1b; }
         .prioridade-ALTA { background-color: #ffedd5; border-left: 6px solid #ea580c; color: #9a3412; }
         .prioridade-MÉDIA { background-color: #f0fdf4; border-left: 6px solid #16a34a; color: #14532d; }
-        .seguranca-alerta { margin-top: 15px; padding: 12px; background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; color: #78350f; font-size: 13px; }
         footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 13px; color: #6b7280; }
         footer a { color: #1e3a8a; text-decoration: none; font-weight: bold; margin: 0 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>ARCA Governance</h1>
-        <p class="subtitle">Sistema de Autodiagnóstico Automatizado</p>
+        
+        <div id="bannerMvp" class="mvp-header-banner">
+            <h2 id="tituloMvp">ARCA Governance</h2>
+            <p id="subtituloMvp">Painel de Autodiagnóstico Corporativo</p>
+        </div>
         
         <form id="formPrincipal">
             <div id="step1" class="step active">
@@ -52,8 +58,8 @@
                 <input type="text" id="whatsapp" required placeholder="Ex: 11999999999">
 
                 <div id="blocoSelecaoTipo">
-                    <label>Selecione Diagnóstico:</label>
-                    <select id="diagnostico_tipo">
+                    <label>Selecione o Escopo do Diagnóstico:</label>
+                    <select id="diagnostico_tipo" onchange="atualizarTextoMvpManualmente()">
                         <option value="VENDAS">Diagnóstico em Marketing e Vendas</option>
                         <option value="FISCAL">Diagnóstico Fiscal e Tributário</option>
                         <option value="GOVERNANCA">Diagnóstico em Gestão de Empresas e Times</option>
@@ -88,7 +94,26 @@
     </div>
 
     <script>
-        // BANCO DE DADOS ATUALIZADO (CORRIGIDO: "somem")
+        // CONFIGURAÇÕES VISUAIS DO CABEÇALHO PARA CADA TIPO DE DIAGNÓSTICO
+        const customizacaoCabecalho = {
+            VENDAS: {
+                titulo: "Máquina de Vendas B2B",
+                subtitulo: "Foco: Estruturação Comercial, Previsibilidade de Receita e Canais"
+            },
+            FISCAL: {
+                titulo: "Inteligência Fiscal & Otimização",
+                subtitulo: "Foco: Processos Contábeis, Parametrização Domínio e Efetivo"
+            },
+            GOVERNANCA: {
+                titulo: "Governança & Performance de Times",
+                subtitulo: "Foco: Descentralização, Alinhamento de Lideranças e KPIs"
+            },
+            TECNOLOGIA: {
+                titulo: "Infraestrutura, Automação & TI",
+                subtitulo: "Foco: Integrações via API, Backups em Nuvem e Segurança"
+            }
+        };
+
         const bancoPerguntas = {
             VENDAS: {
                 A1: [
@@ -107,14 +132,14 @@
                 ],
                 C: [
                     "O CRM possui travas operacionais que impedem o vendedor de avançar um lead de etapa sem preencher dados obrigatórios?",
-                    "O time executes uma cadência padrão e organizada de tentativas de contato ou desiste após a primeira tentativa?",
+                    "O time executa uma cadência padrão e organizada de tentativas de contato ou desiste após a primeira tentativa?",
                     "O time comercial segue um roteiro estruturado de perguntas para descobrir a dor profunda do lead?",
                     "O sistema avisa o vendedor automaticamente quando um lead esfria ou quando uma proposta passa do prazo?",
                     "A transição do lead qualificado pelo SDR para o Closer é documentada e fluida, sem perda de informações?"
                 ],
                 A2: [
                     "Existem reuniões semanais obrigatórias e rígidas de revisão de pipeline com a liderança (Forecast)?",
-                    "Os indicadores de conversão (taxas de agendamento, propostas, fechamento) são updated automaticamente?",
+                    "Os indicadores de conversão (taxas de agendamento, propostas, fechamento) são atualizados automaticamente?",
                     "As metas globais de faturamento estão desdobradas em metas diárias/semanais de atividades operacionais?",
                     "A liderança consegue identificar instantaneamente qual vendedor está performando abaixo da média?",
                     "Existe um processo de ouvir gravações de reuniões ou ler históricos para garantir que o método está sendo executado?"
@@ -152,7 +177,7 @@
             },
             GOVERNANCA: {
                 A1: [
-                    "Os papéis, organogramas e responsabilidades de cada função estão documentados de forma clara e acessível?",
+                    "Os papéis, organogramas e responsabilidades de cada função estão documentados de forma clara and acessível?",
                     "O negócio consegue operar e tomar decisões críticas por mais de 15 dias sem a presença ou aprovação direta do dono?",
                     "Existe um diagnóstico claro sobre o nível de preparo técnico e de gestão de cada líder de setor?",
                     "Há um mapeamento formal e recorrente para identificar ruídos de comunicação e desalinhamentos entre as equipes?",
@@ -177,12 +202,12 @@
                     "Existem rituais rígidos e semanais de prestação de contas para auditar os números sem espaço para desculpas?",
                     "A liderança possui relatórios exatos de produtividade individual por analista para dar feedbacks baseados em dados?",
                     "Há um processo rígido para identificar e corrigir instantaneamente qualquer desvio de meta ou quebra de processo?",
-                    "A diretoria executes auditorias de ponta a ponta nas entregas para garantir que a governança rígida está sendo executada?"
+                    "A diretoria executa auditorias de ponta a ponta nas entregas para garantir que a governança rígida está sendo executada?"
                 ]
             },
             TECNOLOGIA: {
                 A1: [
-                    "Existe um inventário centralizado e updated de todos os softwares, licenças, servidores e ativos de segurança?",
+                    "Existe um inventário centralizado e atualizado de todos os softwares, licenças, servidores e ativos de segurança?",
                     "A empresa possui um mapeamento claro de quais sistemas e hardwares estão obsoletos e atrasando a produtividade?",
                     "A diretoria sabe exatamente quanto gasta com assinaturas de softwares duplicadas ou subutilizadas pelas equipes?",
                     "Há um controle rígido sobre quais colaboradores possuem acesso a quais dados confidenciais ou senhas?",
@@ -212,19 +237,29 @@
             }
         };
 
-        // LÓGICA DE INDIVIDUALIZAÇÃO DINÂMICA VIA LINKS EXTERNOS NO FRONTEND
+        // ENGENHARIA DE DETECÇÃO AUTOMÁTICA DA URL (INDIVIDUALIZAÇÃO)
         window.addEventListener('DOMContentLoaded', () => {
             const parametros = new URLSearchParams(window.location.search);
-            const tipoUrl = parametros.get('tipo'); // Lê ?tipo=vendas, tipo=fiscal, etc.
+            const tipoUrl = parametros.get('tipo'); 
             
             if (tipoUrl) {
                 const tipoMaiusculo = tipoUrl.toUpperCase();
-                if (['VENDAS', 'FISCAL', 'GOVERNANCA', 'TECNOLOGIA'].includes(tipoMaiusculo)) {
+                if (customizacaoCabecalho[tipoMaiusculo]) {
                     document.getElementById("diagnostico_tipo").value = tipoMaiusculo;
-                    document.getElementById("blocoSelecaoTipo").style.display = "none"; // Oculta o seletor (Individualizado!)
+                    document.getElementById("blocoSelecaoTipo").style.display = "none"; // Oculta para travar no MVP escolhido
+                    
+                    // Aplica o título limpo no Cabeçalho
+                    document.getElementById("tituloMvp").innerText = customizacaoCabecalho[tipoMaiusculo].titulo;
+                    document.getElementById("subtituloMvp").innerText = customizacaoCabecalho[tipoMaiusculo].subtitulo;
                 }
             }
         });
+
+        function atualizarTextoMvpManualmente() {
+            const tipo = document.getElementById("diagnostico_tipo").value;
+            document.getElementById("tituloMvp").innerText = customizacaoCabecalho[tipo].titulo;
+            document.getElementById("subtituloMvp").innerText = customizacaoCabecalho[tipo].subtitulo;
+        }
 
         function construirQuestionario() {
             const tipo = document.getElementById("diagnostico_tipo").value;
@@ -259,11 +294,12 @@
                 container.innerHTML += htmlBloco;
             });
 
-            document.getElementById("step1").classList.remove("active");
+            document.getElementById("step1").classList.remove("add", "active");
+            document.getElementById("step1").style.display = "none";
             document.getElementById("step2").classList.add("active");
+            document.getElementById("step2").style.display = "block";
         }
 
-        // CONTROLADOR DE COMPRIMENTO DE PALAVRAS (MÁXIMO 100 PALAVRAS)
         function validarPalavras(textarea) {
             const palavras = textarea.value.trim().split(/\s+/);
             if (palavras.length > 100) {
@@ -273,8 +309,8 @@
         }
 
         function voltarParaDados() {
-            document.getElementById("step2").classList.remove("active");
-            document.getElementById("step1").classList.add("active");
+            document.getElementById("step2").style.display = "none";
+            document.getElementById("step1").style.display = "block";
         }
 
         async function calcularEEnviar() {
@@ -311,15 +347,11 @@
             resultBox.className = `result-box prioridade-${data.classificacao}`;
             resultBox.style.display = "block";
 
+            // NOTA CORRIGIDA: REMOVIDO O ALERTA DE 2FA CONFUSO
             resultBox.innerHTML = `
                 <h3>📊 Seu Score ARCA Calculado: ${data.score_arca}/100</h3>
                 <p><strong>Nível de Risco Comercial:</strong> ${data.classificacao}</p>
                 <p><strong>Diagnóstico do Framework:</strong> ${data.analise_macro}</p>
-                
-                <div class="seguranca-alerta">
-                    ⚠️ <strong>Nota de Compliance de Segurança:</strong> Identificamos risco potencial de engenharia social e vazamento de informações devido à ausência de políticas mandatórias de Autenticação de Dois Fatores (2FA) nos canais corporativos de E-mail e WhatsApp coletados. Recomenda-se a ativação imediata.
-                </div>
-
                 <hr>
                 <p><strong>🔒 Verificação e Entrega Condicional Ativada:</strong></p>
                 <ul>
