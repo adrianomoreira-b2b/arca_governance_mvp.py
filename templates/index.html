@@ -16,7 +16,7 @@
         .step.active { display: block; }
         label { font-weight: 600; display: block; margin-top: 15px; margin-bottom: 5px; color: #374151; }
         input, select, textarea { width: 100%; padding: 11px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: #f9fafb; }
-        textarea.justificativa { margin-top: 8px; font-size: 13px; background-color: #ffffff; border-style: dashed; resize: vertical; width: 100%; }
+        textarea.justificativa-texto { margin-top: 8px; font-size: 13px; background-color: #ffffff; border-style: dashed; resize: vertical; width: 100%; }
         .pilar-section { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 20px; }
         .pilar-header { font-weight: bold; color: #1e3a8a; font-size: 16px; border-bottom: 2px solid #cbd5e1; padding-bottom: 6px; margin-bottom: 15px; }
         .question-block { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
@@ -113,7 +113,7 @@
                 A1: [
                     "Os motivos de perda de negócios (Loss Reason) são auditados sistematicamente no CRM ou somem sem explicação técnica?",
                     "A empresa possui um ICP documentado com travas de qualificação ou o time tenta vender para qualquer segmento?",
-                    "Você sabe exatamente in qual etapa do funil a maior parte dos seus leads é perdida hoje?",
+                    "Você sabe exatamente em qual etapa do funil a maior parte dos seus leads é perdida hoje?",
                     "Os diferenciais competitivos e dores do cliente estão estruturados em um material oficial (One-Pager / Playbook)?",
                     "Todo o histórico de interações com o cliente fica centralizado em um sistema ou está espalhado nos WhatsApps particulares?"
                 ],
@@ -163,7 +163,7 @@
                 ],
                 A2: [
                     "Os balancetes e relatórios macro de inteligência são gerados de forma automática no sistema em tempo hábil?",
-                    "Existem reuniões e rituais rígidos semanais para auditar o status das transmissões e a conformidade das empresas?",
+                    "Existem reuniões e rituais rígidos semanais para auditar o status das transmissions e a conformidade das empresas?",
                     "A diretoria possui indicadores em tempo real para avaliar o volume de entregas e eficiência de cada colaborador?",
                     "O cumprimento do calendário fiscal e contábil é monitorado por sistemas centralizados e visuais (Gclick/Kanban)?",
                     "Existe uma rotina rígida aplicada pela liderança para auditar se a equipe está utilizando as automações do sistema Domínio?"
@@ -178,7 +178,7 @@
                     "Quando um colaborador chave se desliga, o conhecimento e o histórico da função permanecem arquivados na empresa?"
                 ],
                 R: [
-                    "As metas globais de faturamento, retenção e expansão da empresa estão desdobradas in planos de ação individuais?",
+                    "As metas globais de faturamento, retenção e expansão da empresa estão desdobradas em planos de ação individuais?",
                     "Existe um modelo de remuneração variável ou incentivos atrelado diretamente ao atingimento de metas estratégicas?",
                     "Cada setor entende perfeitamente como sua produtividade diária afeta diretamente a margem de lucro?",
                     "Você sabe exatamente qual é o limite de entrega de cada equipe antes de precisar inflar a folha de pagamento?",
@@ -186,7 +186,7 @@
                 ],
                 C: [
                     "Os fluxos operacionais e as tarefas diárias são gerenciados de forma transparente em ferramentas visuais (Kanban)?",
-                    "O time possui acesso a playbooks de execução estruturados para resolver problemas corriqueiros sem acionar a diretoria?",
+                    "O time possui acesso a playbooks de execução estruturados para resolver problemas correeiros sem acionar a diretoria?",
                     "Existem reuniões curtas e padronizadas de alinhamento de metas e prioridades (Daily/Weekly)?",
                     "O sistema gerencial ou de tarefas emite alertas automáticos de atraso antes que a entrega chegue ao cliente?",
                     "Os seus líderes possuem processos diários claros de acompanhamento das suas equipes?"
@@ -303,6 +303,11 @@
         }
 
         async function calcularEEnviar() {
+            const btnEnviar = document.querySelector("button[onclick='calcularEEnviar()']");
+            const textoOriginal = btnEnviar.innerText;
+            btnEnviar.innerText = "⏳ Processando Diagnóstico por IA...";
+            btnEnviar.disabled = true;
+
             let parciais = { A1: 0, R: 0, C: 0, A2: 0 };
             const seletores = document.querySelectorAll(".resposta-arca");
             
@@ -311,12 +316,11 @@
                 parciais[pilar] += parseFloat(sel.value);
             });
 
-            // NOVO: RECOLHA DAS JUSTIFICATIVAS DA TELA PARA EVITAR ERRO DE DADOS VAZIOS
             let txtJustificativas = "";
             const caixasTexto = document.querySelectorAll(".justificativa-texto");
             caixasTexto.forEach((caixa, idx) => {
                 if(caixa.value.trim() !== "") {
-                    txtJustificativas += `Perg ${idx+1}: ${caixa.value.trim()}\n`;
+                    txtJustificativas += `Pergunta ${idx+1}: ${caixa.value.trim()}\n`;
                 }
             });
 
@@ -331,42 +335,50 @@
                 score_pilar_c: parciais.C,
                 score_pilar_a2: parciais.A2,
                 dor_mapeada: document.getElementById("dor_mapeada").value,
-                justificativas_bloco: txtJustificativas // Envia a string formatada
+                justificativas_bloco: txtJustificativas
             };
 
-            const response = await fetch('/diagnostico/processar/completo', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            try {
+                const response = await fetch('/diagnostico/processar/completo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-            const data = await response.json();
-            const resultBox = document.getElementById("resultado");
-            
-            resultBox.className = `result-box prioridade-${data.classificacao}`;
-            resultBox.style.display = "block";
+                const data = await response.json();
+                const resultBox = document.getElementById("resultado");
+                
+                resultBox.className = `result-box prioridade-${data.classificacao}`;
+                resultBox.style.display = "block";
 
-            resultBox.innerHTML = `
-                <h3>📊 Seu Score ARCA Calculado: ${data.score_arca}/100</h3>
-                <p><strong>Nível de Risco Comercial:</strong> ${data.classificacao}</p>
-                <p style="background: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #1e3a8a; font-style: italic; border: 1px solid #e2e8f0; white-space: pre-line;">
-                    ${data.analise_macro}
-                </p>
-                <hr>
-                <p><strong>🔒 Entrega Realizada com Sucesso:</strong></p>
-                <ul>
-                    <li>📧 ${data.confirmacao_envio.email_status}</li>
-                    <li>📱 ${data.confirmacao_envio.whatsapp_status}</li>
-                </ul>
+                resultBox.innerHTML = `
+                    <h3>📊 Seu Score ARCA Calculado: ${data.score_arca}/100</h3>
+                    <p><strong>Nível de Risco Comercial:</strong> ${data.classificacao}</p>
+                    <p style="background: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #1e3a8a; font-style: italic; border: 1px solid #e2e8f0; white-space: pre-line;">
+                        ${data.analise_macro}
+                    </p>
+                    <hr>
+                    <p><strong>🔒 Entrega Realizada com Sucesso:</strong></p>
+                    <ul>
+                        <li>📧 ${data.confirmacao_envio.email_status}</li>
+                        <li>📱 ${data.confirmacao_envio.whatsapp_status}</li>
+                    </ul>
 
-                <div class="cta-calendar-box">
-                    <h4>🚀 Próximo Passo Estratégico Garantido:</h4>
-                    <p>Agende agora uma sessão de validação de 30 minutos com o consultor Adriano Moreira para estruturar o seu plano de ação.</p>
-                    <a href="https://calendar.app.google/C1d44pbpqbLmU17m7" target="_blank" class="btn-calendar">Agendar Reunião Comercial</a>
-                </div>
-            `;
-            
-            resultBox.scrollIntoView({ behavior: 'smooth' });
+                    <div class="cta-calendar-box">
+                        <h4>🚀 Próximo Passo Estratégico Garantido:</h4>
+                        <p>Agende agora uma sessão de validação de 30 minutos com o consultor Adriano Moreira para estruturar o seu plano de ação.</p>
+                        <a href="https://calendar.app.google/C1d44pbpqbLmU17m7" target="_blank" class="btn-calendar">Agendar Reunião Comercial</a>
+                    </div>
+                `;
+                
+                resultBox.scrollIntoView({ behavior: 'smooth' });
+            } catch (erro) {
+                console.error("Erro no processamento:", erro);
+                alert("Ocorreu um problema de comunicação com o servidor. Verifique os dados e tente novamente.");
+            } finally {
+                btnEnviar.innerText = textoOriginal;
+                btnEnviar.disabled = false;
+            }
         }
     </script>
 </body>
