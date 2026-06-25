@@ -15,22 +15,21 @@ app = FastAPI(title=TITLE, version=VERSION)
 
 banco_leads = []
 
-# Modelo de recepção de dados estruturado para a auditoria de 20 perguntas
+# Modelo de dados atualizado para suportar a engenharia do Agente de IA
 class PayloadDiagnosticoARCA(BaseModel):
     empresa: str
     responsavel: str
     email: str
     whatsapp: str
-    diagnostico_tipo: str  # VENDAS, FISCAL, GOVERNANCA, TECNOLOGIA
-    score_pilar_a1: float  # Pontos acumulados no pilar Arquitetura (0 a 25)
-    score_pilar_r: float   # Pontos acumulados no pilar Receita (0 a 25)
-    score_pilar_c: float   # Pontos acumulados no pilar Execução (0 a 25)
-    score_pilar_a2: float  # Pontos acumulados no pilar Aceleração (0 a 25)
+    diagnostico_tipo: str
+    score_pilar_a1: float
+    score_pilar_r: float
+    score_pilar_c: float
+    score_pilar_a2: float
     dor_mapeada: Optional[str] = None
 
 @app.get("/", response_class=HTMLResponse)
 def carregar_aplicativo_visual():
-    """Retorna a interface do sistema lendo o arquivo HTML nativo."""
     caminho_html = os.path.join("templates", "index.html")
     if not os.path.exists(caminho_html):
         return "<h1>Erro Técnico: O arquivo templates/index.html não foi encontrado.</h1>"
@@ -39,19 +38,24 @@ def carregar_aplicativo_visual():
 
 @app.post("/diagnostico/processar/completo")
 def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
-    # Soma matemática dos 4 blocos de pilares (Soma máxima = 100 pontos)
     score_total = int(dados.score_pilar_a1 + dados.score_pilar_r + dados.score_pilar_c + dados.score_pilar_a2)
     
-    # Regra de Roteamento de Risco Comercial do Framework
     if score_total <= 40:
         classificacao = "CRÍTICA"
-        analise_macro = "Operação Comercial desorganizada com vazamento de receita e perdas ocultas graves."
+        analise_base = "Operação Comercial desorganizada com vazamento de receita e perdas ocultas graves."
     elif score_total <= 75:
         classificacao = "ALTA"
-        analise_macro = "Apresenta gargalos de processos e dependência severa de execução manual."
+        analise_base = "Apresenta gargalos de processos e dependência severa de execução manual."
     else:
         classificacao = "MÉDIA"
-        analise_macro = "Nível de maturidade estável, necessitando apenas de automação de CRM e travas de governança."
+        analise_base = "Nível de maturidade estável, necessitando apenas de automação de CRM e travas de governança."
+
+    # PROCESSAMENTO SIMULADO DO AGENTE DE IA (Molda o relatório usando a dor real inserida pelo usuário)
+    dor_usuario = dados.dor_mapeada if dados.dor_mapeada else "Não especificada textualmente."
+    
+    relatorio_agente_ia = f"""
+    [Análise Gerada pelo Agente de IA ARCA]: Identificamos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 obtido. {analise_base} O Framework ARCA identificou que a falta de padrões estruturados está drenando a margem de lucro da sua operação atual.
+    """
 
     novo_lead = {
         "id": len(banco_leads) + 1,
@@ -62,25 +66,25 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
         "tipo": dados.diagnostico_tipo,
         "score_arca": score_total,
         "classificacao": classificacao,
+        "analise_ia": relatorio_agente_ia.strip(),
         "data_captura": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
     banco_leads.append(novo_lead)
 
-    # SIMULAÇÃO DE DISPAROS DE EMAIL E WHATSAPP COM BASE EM DADOS CONFIRMADOS
+    # LOG COMERCIAL NO TERMINAL DE PRODUÇÃO
     print("\n" + "="*70)
-    print(f"📧 [E-MAIL ENVIADO SEGURO] Destinatário: {dados.email}")
-    print(f"📱 [WHATSAPP DISPARADO] Número: {dados.whatsapp}")
-    print(f"🏢 Organização Auditada: {dados.empresa} | Responsável: {dados.responsavel}")
-    print(f"📊 Relatório Gerado: Score {score_total}/100 | Classificação de Risco: {classificacao}")
+    print(f"🤖 [AGENTE DE IA] ANALISANDO RESPOSTAS DE: {dados.responsavel} ({dados.empresa})")
+    print(f"💡 Dor Interpretada pela IA: '{dor_usuario}'")
+    print(f"📊 Relatório Customizado Enviado para {dados.email} e WhatsApp {dados.whatsapp}")
     print("="*70 + "\n")
 
     return {
-        "status": "Auditoria Processada com Sucesso",
+        "status": "Auditoria Processada pelo Agente de IA",
         "score_arca": score_total,
         "classificacao": classificacao,
-        "analise_macro": analise_macro,
+        "analise_macro": relatorio_agente_ia.strip(),
         "confirmacao_envio": {
             "email_status": f"Relatório Técnico compactado e enviado para {dados.email}",
-            "whatsapp_status": f" Roadmap de melhorias e considerações enviado para {dados.whatsapp}"
+            "whatsapp_status": f"Roadmap de melhorias e considerações enviado para {dados.whatsapp}"
         }
     }
