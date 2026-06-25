@@ -8,7 +8,6 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 700px; }
         
-        /* NOVO: DESIGN DO CABEÇALHO DINÂMICO PARA CADA MVP */
         .mvp-header-banner { background-color: #1e3a8a; color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 25px; }
         .mvp-header-banner h2 { margin: 0; font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .mvp-header-banner p { margin: 8px 0 0 0; font-size: 14px; opacity: 0.9; font-style: italic; }
@@ -27,10 +26,19 @@
         .btn-primary { background: #1e3a8a; color: white; }
         .btn-primary:hover { background: #1d4ed8; }
         .btn-secondary { background: #e5e7eb; color: #4b5563; }
+        
         .result-box { margin-top: 30px; padding: 25px; border-radius: 8px; display: none; }
         .prioridade-CRÍTICA { background-color: #fee2e2; border-left: 6px solid #dc2626; color: #991b1b; }
         .prioridade-ALTA { background-color: #ffedd5; border-left: 6px solid #ea580c; color: #9a3412; }
         .prioridade-MÉDIA { background-color: #f0fdf4; border-left: 6px solid #16a34a; color: #14532d; }
+        
+        /* ESTILIZAÇÃO COMPACTA DO BOTÃO DE AGENDAMENTO */
+        .cta-calendar-box { margin-top: 25px; text-align: center; background: #eff6ff; padding: 20px; border-radius: 8px; border: 1px solid #bfdbfe; }
+        .cta-calendar-box h4 { margin: 0 0 10px 0; color: #1e3a8a; font-size: 16px; font-weight: bold; }
+        .cta-calendar-box p { font-size: 13px; margin: 0 0 15px 0; color: #1e3a8a; }
+        .btn-calendar { display: inline-block; background-color: #1e3a8a; color: white !important; text-decoration: none; padding: 12px 25px; font-weight: bold; border-radius: 6px; font-size: 14px; transition: background 0.2s; }
+        .btn-calendar:hover { background-color: #1d4ed8; }
+
         footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 13px; color: #6b7280; }
         footer a { color: #1e3a8a; text-decoration: none; font-weight: bold; margin: 0 10px; }
     </style>
@@ -44,6 +52,7 @@
         </div>
         
         <form id="formPrincipal">
+            <!-- ETAPA 1: CONFIGURAÇÃO E DADOS CADASTRAIS -->
             <div id="step1" class="step active">
                 <label>Nome da Empresa:</label>
                 <input type="text" id="empresa" required placeholder="Ex: Indikos Consultoria B2B">
@@ -75,6 +84,7 @@
                 </div>
             </div>
 
+            <!-- ETAPA 2: EXIBIÇÃO DINÂMICA DAS PERGUNTAS -->
             <div id="step2" class="step">
                 <div id="containerPerguntasDinamicas"></div>
                 <div class="btn-group">
@@ -84,6 +94,7 @@
             </div>
         </form>
 
+        <!-- CAIXA DE RESULTADO FINAL ONDE O BOTÃO VAI APARECER -->
         <div id="resultado" class="result-box"></div>
 
         <footer>
@@ -94,24 +105,11 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES VISUAIS DO CABEÇALHO PARA CADA TIPO DE DIAGNÓSTICO
         const customizacaoCabecalho = {
-            VENDAS: {
-                titulo: "Máquina de Vendas B2B",
-                subtitulo: "Foco: Estruturação Comercial, Previsibilidade de Receita e Canais"
-            },
-            FISCAL: {
-                titulo: "Inteligência Fiscal & Otimização",
-                subtitulo: "Foco: Processos Contábeis, Parametrização Domínio e Efetivo"
-            },
-            GOVERNANCA: {
-                titulo: "Governança & Performance de Times",
-                subtitulo: "Foco: Descentralização, Alinhamento de Lideranças e KPIs"
-            },
-            TECNOLOGIA: {
-                titulo: "Infraestrutura, Automação & TI",
-                subtitulo: "Foco: Integrações via API, Backups em Nuvem e Segurança"
-            }
+            VENDAS: { titulo: "Máquina de Vendas B2B", subtitulo: "Foco: Estruturação Comercial, Previsibilidade de Receita e Canais" },
+            FISCAL: { titulo: "Inteligência Fiscal & Otimização", subtitulo: "Foco: Processos Contábeis, Parametrização Domínio e Efetivo" },
+            GOVERNANCA: { titulo: "Governança & Performance de Times", subtitulo: "Foco: Descentralização, Alinhamento de Lideranças e KPIs" },
+            TECNOLOGIA: { titulo: "Infraestrutura, Automação & TI", subtitulo: "Foco: Integrações via API, Backups em Nuvem e Segurança" }
         };
 
         const bancoPerguntas = {
@@ -120,7 +118,7 @@
                     "Os motivos de perda de negócios (Loss Reason) são auditados sistematicamente no CRM ou somem sem explicação técnica?",
                     "A empresa possui um ICP documentado com travas de qualificação ou o time tenta vender para qualquer segmento?",
                     "Você sabe exatamente em qual etapa do funil a maior parte dos seus leads é perdida hoje?",
-                    "Os diferenciais competitivos e dores do cliente estão estruturados em um material oficial (One-Pager / Playbook)?",
+                    "Os diferenciais competitivos e dores do cliente estão estruturados in um material oficial (One-Pager / Playbook)?",
                     "Todo o histórico de interações com o cliente fica centralizado em um sistema ou está espalhado nos WhatsApps particulares?"
                 ],
                 R: [
@@ -177,7 +175,7 @@
             },
             GOVERNANCA: {
                 A1: [
-                    "Os papéis, organogramas e responsabilidades de cada função estão documentados de forma clara and acessível?",
+                    "Os papéis, organogramas e responsabilidades de cada função estão documentados de forma clara e acessível?",
                     "O negócio consegue operar e tomar decisões críticas por mais de 15 dias sem a presença ou aprovação direta do dono?",
                     "Existe um diagnóstico claro sobre o nível de preparo técnico e de gestão de cada líder de setor?",
                     "Há um mapeamento formal e recorrente para identificar ruídos de comunicação e desalinhamentos entre as equipes?",
@@ -192,7 +190,7 @@
                 ],
                 C: [
                     "Os fluxos operacionais e as tarefas diárias são gerenciados de forma transparente em ferramentas visuais (Kanban)?",
-                    "O time possui acesso a playbooks de execução estruturados para resolver problemas corriqueiros sem acionar a diretoria?",
+                    "O time possui acesso a playbooks de execução estruturados para resolver problemas correeiros sem acionar a diretoria?",
                     "Existem reuniões curtas e padronizadas de alinhamento de metas e prioridades (Daily/Weekly)?",
                     "O sistema gerencial ou de tarefas emite alertas automáticos de atraso antes que a entrega chegue ao cliente?",
                     "Os seus líderes possuem processos diários claros de acompanhamento das suas equipes?"
@@ -237,7 +235,6 @@
             }
         };
 
-        // ENGENHARIA DE DETECÇÃO AUTOMÁTICA DA URL (INDIVIDUALIZAÇÃO)
         window.addEventListener('DOMContentLoaded', () => {
             const parametros = new URLSearchParams(window.location.search);
             const tipoUrl = parametros.get('tipo'); 
@@ -246,9 +243,7 @@
                 const tipoMaiusculo = tipoUrl.toUpperCase();
                 if (customizacaoCabecalho[tipoMaiusculo]) {
                     document.getElementById("diagnostico_tipo").value = tipoMaiusculo;
-                    document.getElementById("blocoSelecaoTipo").style.display = "none"; // Oculta para travar no MVP escolhido
-                    
-                    // Aplica o título limpo no Cabeçalho
+                    document.getElementById("blocoSelecaoTipo").style.display = "none";
                     document.getElementById("tituloMvp").innerText = customizacaoCabecalho[tipoMaiusculo].titulo;
                     document.getElementById("subtituloMvp").innerText = customizacaoCabecalho[tipoMaiusculo].subtitulo;
                 }
@@ -294,9 +289,7 @@
                 container.innerHTML += htmlBloco;
             });
 
-            document.getElementById("step1").classList.remove("add", "active");
             document.getElementById("step1").style.display = "none";
-            document.getElementById("step2").classList.add("active");
             document.getElementById("step2").style.display = "block";
         }
 
@@ -347,18 +340,28 @@
             resultBox.className = `result-box prioridade-${data.classificacao}`;
             resultBox.style.display = "block";
 
-            // NOTA CORRIGIDA: REMOVIDO O ALERTA DE 2FA CONFUSO
+            // BOTÃO DE AGENDAMENTO INSERIDO DIRETAMENTE NA RENDERIZAÇÃO MANDATÓRIA DO BLOCÓ
             resultBox.innerHTML = `
                 <h3>📊 Seu Score ARCA Calculado: ${data.score_arca}/100</h3>
                 <p><strong>Nível de Risco Comercial:</strong> ${data.classificacao}</p>
-                <p><strong>Diagnóstico do Framework:</strong> ${data.analise_macro}</p>
+                <p style="background: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #1e3a8a; font-style: italic; border: 1px solid #e2e8f0;">
+                    ${data.analise_macro}
+                </p>
                 <hr>
                 <p><strong>🔒 Verificação e Entrega Condicional Ativada:</strong></p>
                 <ul>
                     <li>📧 ${data.confirmacao_envio.email_status}</li>
                     <li>📱 ${data.confirmacao_envio.whatsapp_status}</li>
                 </ul>
+
+                <!-- CAIXA BLINDADA DO BOTÃO DE AGENDAMENTO -->
+                <div class="cta-calendar-box">
+                    <h4>🚀 Próximo Passo Estratégico Garantido:</h4>
+                    <p>Agende agora uma sessão de validação de 30 minutos com o consultor Adriano Moreira para estruturar o seu plano de ação.</p>
+                    <a href="https://calendar.app.google/C1d44pbpqbLmU17m7" target="_blank" class="btn-calendar">Agendar Reunião Comercial</a>
+                </div>
             `;
+            
             resultBox.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
