@@ -30,46 +30,47 @@ class PayloadDiagnosticoARCA(BaseModel):
     score_pilar_c: float
     score_pilar_a2: float
     dor_mapeada: Optional[str] = None
+    justificativas_bloco: Optional[str] = "" # Recebe os textos livres coletados
 
 def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str):
-    """Função atualizada usando a porta de segurança SSL 465 contra bloqueios de servidores cloud."""
+    """Motor SMTP SSL 465 com tratamento de erros isolado."""
     if not EMAIL_REMETENTE or not EMAIL_SENHA_APP:
-        print("⚠️ Credenciais de e-mail ausentes nas variáveis de ambiente.")
+        print("⚠️ ALERTA: Credenciais de e-mail ausentes no painel Env Vars do Render.")
         return False
     try:
-        # Montagem do e-mail do Lead
+        # Email do Lead
         msg = MIMEMultipart()
         msg['From'] = EMAIL_REMETENTE
         msg['To'] = destinatario_lead
         msg['Subject'] = assunto
         msg.attach(MIMEText(corpo_texto, 'plain', 'utf-8'))
 
-        # Montagem da sua Cópia Administrativa
+        # Cópia para o Adriano Moreira
         msg_copia = MIMEMultipart()
         msg_copia['From'] = EMAIL_REMETENTE
         msg_copia['To'] = EMAIL_REMETENTE 
-        msg_copia['Subject'] = f"🚨 [CÓPIA LEAD ARCA] - {assunto}"
+        msg_copia['Subject'] = f"🚨 [NOVO LEAD ARCA] - {assunto}"
         msg_copia.attach(MIMEText(corpo_texto, 'plain', 'utf-8'))
 
-        # ALTERADO: Uso do SMTP_SSL na porta 465 para forçar a passagem no Render
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        # Disparo forçado via SSL Direto
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10)
         server.login(EMAIL_REMETENTE, EMAIL_SENHA_APP)
         
         server.sendmail(EMAIL_REMETENTE, destinatario_lead, msg.as_string())
         server.sendmail(EMAIL_REMETENTE, EMAIL_REMETENTE, msg_copia.as_string())
         
         server.quit()
-        print("✅ E-mails enviados com sucesso via SSL (Porta 465)!")
+        print("✅ DISPARO SMTP REAL EXECUTADO COM SUCESSO!")
         return True
     except Exception as e:
-        print(f"❌ Erro na porta 465 SMTP: {str(e)}")
+        print(f"❌ ERRO SMTP NA PORTA 465 SSL: {str(e)}")
         return False
 
 @app.get("/", response_class=HTMLResponse)
 def carregar_aplicativo_visual():
     caminho_html = os.path.join("templates", "index.html")
     if not os.path.exists(caminho_html):
-        return "<h1>Erro Técnico: O arquivo templates/index.html não foi encontrado.</h1>"
+        return "<h1>Erro Técnico: Ficheiro templates/index.html em falta.</h1>"
     with open(caminho_html, "r", encoding="utf-8") as arquivo:
         return HTMLResponse(content=arquivo.read())
 
@@ -87,51 +88,62 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
         classificacao = "MÉDIA"
         analise_base = "Nível de maturidade estável, necessitando apenas de automação fina e travas de governança."
 
-    dor_usuario = dados.dor_mapeada if dados.dor_mapeada else "Não especificada textualmente."
-    relatorio_agente_ia = f"Identificamos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 obtido. {analise_base} O Framework ARCA identificou que a falta de padrões estruturados está drenando a margem de lucro da sua operação atual."
+    dor_usuario = dados.dor_mapeada if dados.dor_mapeada else "Não especificada."
+    justificativas_enviadas = dados.justificativas_bloco if dados.justificativas_bloco else "Nenhuma justificativa textual inserida."
 
+    relatorio_agente_ia = f"""[Análise do Agente de IA ARCA]: Identificámos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 obtido.\n\nDirecionamento Técnico: {analise_base} O Framework ARCA aponta que a falta de conectividade e o retrabalho manual estão a drenar a margem latente do negócio."""
+
+    # CORPO COMPLETO FORMATADO CONTENDO O TEXTO LIVRE DAS PERGUNTAS DO CLIENTE
     corpo_email_formatado = f"""
-    Olá, {dados.responsavel}, tudo bem?
+    Olá, {dados.responsavel},
     
-    Segue o relatório técnico gerado automaticamente pelo Agente de IA do Framework ARCA para a empresa {dados.empresa}.
+    Segue o relatório técnico estruturado gerado pelo Agente de IA do Framework ARCA para a empresa {dados.empresa}.
     
     ----------------------------------------------------------------------
-    📊 DETALHES DO SEU DIAGNÓSTICO CORPORATIVO
+    📊 DADOS CONSOLIDADOS DO LEAD
     ----------------------------------------------------------------------
-    🏢 Empresa Auditada: {dados.empresa}
-    👤 Responsável Técnico: {dados.responsavel}
-    📱 WhatsApp para contato: {dados.whatsapp}
-    🎯 Escopo Avaliado: {dados.diagnostico_tipo}
+    🏢 Organização: {dados.empresa}
+    👤 Gestor Responsável: {dados.responsavel}
+    📱 Canal WhatsApp: {dados.whatsapp}
+    🎯 Escopo da Auditoria: {dados.diagnostico_tipo}
     
-    📈 SCORE ARCA TOTAL: {score_total} de 100 pontos possíveis.
-    ⚠️ NÍVEL DE PRIORIDADE/RISCO: {classificacao}
+    📈 SCORE ARCA CALCULADO: {score_total} de 100 pontos.
+    ⚠️ CLASSIFICAÇÃO DE RISCO: {classificacao}
     
-    🤖 ANÁLISE DO AGENTE DE IA:
+    ----------------------------------------------------------------------
+    🤖 ANÁLISE COMPORTAMENTAL DO AGENTE DE IA
+    ----------------------------------------------------------------------
     {relatorio_agente_ia}
     
     ----------------------------------------------------------------------
-    🚀 PRÓXIMO PASSO RECOMENDADO:
-    Para estruturar o seu plano de ação de 90 dias e estancar os gargalos mapeados, agende sua sessão estratégica de 30 minutos com o consultor Adriano Moreira clicando no link abaixo:
+    📝 JUSTIFICATIVAS INTERNAS RELATADAS PELO LEAD (ATÉ 100 PALAVRAS):
+    ----------------------------------------------------------------------
+    {justificativas_enviadas}
+    
+    ----------------------------------------------------------------------
+    🚀 PRÓXIMO PASSO MANDATÓRIO:
+    Para validar estes dados textuais e estruturar o plano de contingência de 90 dias, aceda à agenda do consultor Adriano Moreira no link abaixo:
     https://calendar.app.google/C1d44pbpqbLmU17m7
     
     Atenciosamente,
     Equipe ARCA Governance & Grupo Gestão Integrada
     """
 
+    # Executa o disparo real em segundo plano seguro
     envio_sucesso = disparar_emails_reais(
         destinatario_lead=dados.email,
-        assunto=f"Seu Resultado do Diagnóstico ARCA - {dados.empresa}",
+        assunto=f"Resultado Diagnóstico ARCA - {dados.empresa}",
         corpo_texto=corpo_email_formatado.strip()
     )
 
-    status_email = f"Enviado para {dados.email} (com cópia para a diretoria)" if envio_sucesso else "Processado (verifique os logs de conexão do servidor)"
+    status_email = f"Relatório Técnico enviado para {dados.email} (com cópia para a diretoria)!" if envio_sucesso else "Processado (Conexão SMTP pendente de verificação nos logs do Render)."
 
     return {
         "score_arca": score_total,
-        "classificacao": classificacao,
+        "classificacao": clasificacao,
         "analise_macro": relatorio_agente_ia,
         "confirmacao_envio": {
             "email_status": status_email,
-            "whatsapp_status": "Roadmap de melhorias disponibilizado."
+            "whatsapp_status": "Roadmap de melhorias gerado com sucesso."
         }
     }

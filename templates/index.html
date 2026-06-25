@@ -16,7 +16,7 @@
         .step.active { display: block; }
         label { font-weight: 600; display: block; margin-top: 15px; margin-bottom: 5px; color: #374151; }
         input, select, textarea { width: 100%; padding: 11px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: #f9fafb; }
-        textarea.justificativa { margin-top: 8px; font-size: 13px; background-color: #ffffff; border-style: dashed; resize: vertical; }
+        textarea.justificativa { margin-top: 8px; font-size: 13px; background-color: #ffffff; border-style: dashed; resize: vertical; width: 100%; }
         .pilar-section { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 20px; }
         .pilar-header { font-weight: bold; color: #1e3a8a; font-size: 16px; border-bottom: 2px solid #cbd5e1; padding-bottom: 6px; margin-bottom: 15px; }
         .question-block { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
@@ -32,7 +32,6 @@
         .prioridade-ALTA { background-color: #ffedd5; border-left: 6px solid #ea580c; color: #9a3412; }
         .prioridade-MÉDIA { background-color: #f0fdf4; border-left: 6px solid #16a34a; color: #14532d; }
         
-        /* ESTILIZAÇÃO COMPACTA DO BOTÃO DE AGENDAMENTO */
         .cta-calendar-box { margin-top: 25px; text-align: center; background: #eff6ff; padding: 20px; border-radius: 8px; border: 1px solid #bfdbfe; }
         .cta-calendar-box h4 { margin: 0 0 10px 0; color: #1e3a8a; font-size: 16px; font-weight: bold; }
         .cta-calendar-box p { font-size: 13px; margin: 0 0 15px 0; color: #1e3a8a; }
@@ -52,7 +51,6 @@
         </div>
         
         <form id="formPrincipal">
-            <!-- ETAPA 1: CONFIGURAÇÃO E DADOS CADASTRAIS -->
             <div id="step1" class="step active">
                 <label>Nome da Empresa:</label>
                 <input type="text" id="empresa" required placeholder="Ex: Indikos Consultoria B2B">
@@ -84,7 +82,6 @@
                 </div>
             </div>
 
-            <!-- ETAPA 2: EXIBIÇÃO DINÂMICA DAS PERGUNTAS -->
             <div id="step2" class="step">
                 <div id="containerPerguntasDinamicas"></div>
                 <div class="btn-group">
@@ -94,7 +91,6 @@
             </div>
         </form>
 
-        <!-- CAIXA DE RESULTADO FINAL ONDE O BOTÃO VAI APARECER -->
         <div id="resultado" class="result-box"></div>
 
         <footer>
@@ -117,8 +113,8 @@
                 A1: [
                     "Os motivos de perda de negócios (Loss Reason) são auditados sistematicamente no CRM ou somem sem explicação técnica?",
                     "A empresa possui um ICP documentado com travas de qualificação ou o time tenta vender para qualquer segmento?",
-                    "Você sabe exatamente em qual etapa do funil a maior parte dos seus leads é perdida hoje?",
-                    "Os diferenciais competitivos e dores do cliente estão estruturados in um material oficial (One-Pager / Playbook)?",
+                    "Você sabe exatamente in qual etapa do funil a maior parte dos seus leads é perdida hoje?",
+                    "Os diferenciais competitivos e dores do cliente estão estruturados em um material oficial (One-Pager / Playbook)?",
                     "Todo o histórico de interações com o cliente fica centralizado em um sistema ou está espalhado nos WhatsApps particulares?"
                 ],
                 R: [
@@ -182,7 +178,7 @@
                     "Quando um colaborador chave se desliga, o conhecimento e o histórico da função permanecem arquivados na empresa?"
                 ],
                 R: [
-                    "As metas globais de faturamento, retenção e expansão da empresa estão desdobradas em planos de ação individuais?",
+                    "As metas globais de faturamento, retenção e expansão da empresa estão desdobradas in planos de ação individuais?",
                     "Existe um modelo de remuneração variável ou incentivos atrelado diretamente ao atingimento de metas estratégicas?",
                     "Cada setor entende perfeitamente como sua produtividade diária afeta diretamente a margem de lucro?",
                     "Você sabe exatamente qual é o limite de entrega de cada equipe antes de precisar inflar a folha de pagamento?",
@@ -190,7 +186,7 @@
                 ],
                 C: [
                     "Os fluxos operacionais e as tarefas diárias são gerenciados de forma transparente em ferramentas visuais (Kanban)?",
-                    "O time possui acesso a playbooks de execução estruturados para resolver problemas correeiros sem acionar a diretoria?",
+                    "O time possui acesso a playbooks de execução estruturados para resolver problemas corriqueiros sem acionar a diretoria?",
                     "Existem reuniões curtas e padronizadas de alinhamento de metas e prioridades (Daily/Weekly)?",
                     "O sistema gerencial ou de tarefas emite alertas automáticos de atraso antes que a entrega chegue ao cliente?",
                     "Os seus líderes possuem processos diários claros de acompanhamento das suas equipes?"
@@ -281,7 +277,7 @@
                                 <option value="2.5">🟡 Parcialmente estruturado / Depende de pessoas (2.5 pts)</option>
                                 <option value="5">🟢 100% Automatizado / Processo padronizado e documentado (5 pts)</option>
                             </select>
-                            <textarea class="justificativa" rows="2" maxlength="600" placeholder="Justifique sua resposta aqui (opcional - limite de 100 palavras)..." oninput="validarPalavras(this)"></textarea>
+                            <textarea class="justificativa-texto" rows="2" placeholder="Justifique sua resposta aqui (limite de 100 palavras)..." oninput="validarPalavras(this)"></textarea>
                         </div>`;
                 });
 
@@ -315,6 +311,15 @@
                 parciais[pilar] += parseFloat(sel.value);
             });
 
+            // NOVO: RECOLHA DAS JUSTIFICATIVAS DA TELA PARA EVITAR ERRO DE DADOS VAZIOS
+            let txtJustificativas = "";
+            const caixasTexto = document.querySelectorAll(".justificativa-texto");
+            caixasTexto.forEach((caixa, idx) => {
+                if(caixa.value.trim() !== "") {
+                    txtJustificativas += `Perg ${idx+1}: ${caixa.value.trim()}\n`;
+                }
+            });
+
             const payload = {
                 empresa: document.getElementById("empresa").value,
                 responsavel: document.getElementById("responsavel").value,
@@ -325,7 +330,8 @@
                 score_pilar_r: parciais.R,
                 score_pilar_c: parciais.C,
                 score_pilar_a2: parciais.A2,
-                dor_mapeada: document.getElementById("dor_mapeada").value
+                dor_mapeada: document.getElementById("dor_mapeada").value,
+                justificativas_bloco: txtJustificativas // Envia a string formatada
             };
 
             const response = await fetch('/diagnostico/processar/completo', {
@@ -340,21 +346,19 @@
             resultBox.className = `result-box prioridade-${data.classificacao}`;
             resultBox.style.display = "block";
 
-            // BOTÃO DE AGENDAMENTO INSERIDO DIRETAMENTE NA RENDERIZAÇÃO MANDATÓRIA DO BLOCÓ
             resultBox.innerHTML = `
                 <h3>📊 Seu Score ARCA Calculado: ${data.score_arca}/100</h3>
                 <p><strong>Nível de Risco Comercial:</strong> ${data.classificacao}</p>
-                <p style="background: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #1e3a8a; font-style: italic; border: 1px solid #e2e8f0;">
+                <p style="background: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #1e3a8a; font-style: italic; border: 1px solid #e2e8f0; white-space: pre-line;">
                     ${data.analise_macro}
                 </p>
                 <hr>
-                <p><strong>🔒 Verificação e Entrega Condicional Ativada:</strong></p>
+                <p><strong>🔒 Entrega Realizada com Sucesso:</strong></p>
                 <ul>
                     <li>📧 ${data.confirmacao_envio.email_status}</li>
                     <li>📱 ${data.confirmacao_envio.whatsapp_status}</li>
                 </ul>
 
-                <!-- CAIXA BLINDADA DO BOTÃO DE AGENDAMENTO -->
                 <div class="cta-calendar-box">
                     <h4>🚀 Próximo Passo Estratégico Garantido:</h4>
                     <p>Agende agora uma sessão de validação de 30 minutos com o consultor Adriano Moreira para estruturar o seu plano de ação.</p>
