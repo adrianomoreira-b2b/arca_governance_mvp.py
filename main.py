@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 VERSION = "4.0.0"
-TITLE = "ARCA Governance Engine - API Direta HTTP"
+TITLE = "ARCA Governance Engine - API Direta"
 
 app = FastAPI(title=TITLE, version=VERSION)
 
@@ -35,7 +35,7 @@ class PayloadDiagnosticoARCA(BaseModel):
     justificativas_bloco: Optional[str] = ""
 
 def gerar_analise_agente_ia(dados: PayloadDiagnosticoARCA, score_total: int) -> str:
-    """Consome a API do Gemini via protocolo HTTP direto bypassando bloqueios de IP de SDK."""
+    """Consome a API do Gemini via protocolo HTTP direto bypassando bloqueios e instabilidades de SDK."""
     chave_limpa = str(GEMINI_API_KEY).strip()
 
     if not chave_limpa or chave_limpa == "":
