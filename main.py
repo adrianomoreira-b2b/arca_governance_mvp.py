@@ -7,13 +7,14 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
 
-VERSION = "3.5.0"
-TITLE = "ARCA Governance Engine - IA Direta"
+VERSION = "3.6.0"
+TITLE = "ARCA Governance Engine - IA Oficial"
 
 app = FastAPI(title=TITLE, version=VERSION)
 
@@ -35,50 +36,52 @@ class PayloadDiagnosticoARCA(BaseModel):
     justificativas_bloco: Optional[str] = ""
 
 def gerar_analise_agente_ia(dados: PayloadDiagnosticoARCA, score_total: int) -> str:
-    """Motor de IA reconstruído passando a chave direto no escopo do modelo para evitar falhas de contexto."""
+    """Motor de IA usando o SDK moderno google-genai para evitar erros de conexao no Render."""
     chave_limpa = str(GEMINI_API_KEY).strip()
 
     if not chave_limpa or chave_limpa == "":
-        return f"[Aviso]: Seu Score ARCA foi de {score_total}/100. Insira a chave GEMINI_API_KEY no Render."
+        return f"[Aviso de Configuração]: Seu Score ARCA foi de {score_total}/100. Adicione a chave GEMINI_API_KEY no painel do Render."
 
     try:
-        # Prompt mestre rigorosamente estruturado em Português do Brasil
-        prompt_comando = f"""
+        # Inicialização moderna e recomendada pelo Google
+        client = genai.Client(api_key=chave_limpa)
+        
+        prompt_sistema = """
         Você é o motor de IA oficial e Consultor Estratégico Sênior do Framework ARCA do Grupo Gestão Integrada.
         Sua tarefa é analisar o resultado deste diagnóstico empresarial e redigir uma análise executiva legítima, profunda e consultiva.
 
         REGRAS CRÍTICAS DE TEXTO:
         1. IDIOMA: Use estritamente o Português do Brasil. Proibido qualquer jargão ou termo de Portugal.
         2. COMPILAÇÃO DE ADERÊNCIA: Avalie as justificativas textuais escritas pelo cliente pergunta por pergunta. Identifique se o teor indica baixa, média ou alta aderência técnica aos padrões da governança ARCA.
-        3. SUSTENTAÇÃO EM RECEITA (ROI): Demonstre, com base na dor relatada ('{dados.dor_mapeada}') e nas justificativas fornecidas, onde a operação está sofrendo vazamento de caixa (perda oculta de faturamento) e como a implantação do Framework ARCA vai gerar receita, organizar processos e proteger o lucro.
+        3. SUSTENTAÇÃO EM RECEITA (ROI): Demonstre, com base na dor relatada e nas justificativas fornecidas, onde a operação está sofrendo vazamento de caixa (perda oculta de faturamento) e como a implantação do Framework ARCA vai gerar receita, organizar processos e proteger o lucro.
         4. TAMANHO DA RESPOSTA: Seu relatório deve ser denso e possuir obrigatoriamente entre 15 e 25 linhas operacionais de texto. Seja direto e firme nas fraquezas operacionais mapeadas.
-        
+        """
+
+        contexto_lead = f"""
         Dados para Auditoria:
         - Empresa Auditada: {dados.empresa}
         - Segmento/Escopo avaliado: {dados.diagnostico_tipo}
         - Score Geral Calculado: {score_total}/100
-        - Notas por Pilar: A1 (Realidade)={dados.score_pilar_a1}/25, R (Receita)={dados.score_pilar_r}/25, C (Execução)={dados.score_pilar_c}/25, A2 (Controle)={dados.score_pilar_a2}/25
+        - Notas por pilar: A1={dados.score_pilar_a1}/25, R={dados.score_pilar_r}/25, C={dados.score_pilar_c}/25, A2={dados.score_pilar_a2}/25
+        - Dor Comercial Relatada: '{dados.dor_mapeada}'
         
         [Justificativas em Texto Inseridas pelo Lead]:
         {dados.justificativas_bloco}
-        
-        Gere o parecer real do Agente de IA ARCA agora:
         """
 
-        # NOVO: Injeção direta da API Key no argumento cliente bypassando falhas de escopo
-        model = genai.GenerativeModel(
-            model_name='gemini-1.5-flash'
-        )
-        
-        response = model.generate_content(
-            prompt_comando,
-            generation_config={"temperature": 0.3},
-            api_key=chave_limpa  # Força a autenticação inline por requisição
+        # Execução com chamadas modernas e seguras
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=contexto_lead,
+            config=types.GenerateContentConfig(
+                system_instruction=prompt_sistema,
+                temperature=0.3,
+            )
         )
         return response.text.strip()
         
     except Exception as e:
-        print(f"❌ FALHA CRÍTICA NO GEMINI INTERNO: {str(e)}")
+        print(f"❌ FALHA DE CONEXÃO NO NOVO SDK GEMINI: {str(e)}")
         return f"[Erro Técnico de Conexão]: O servidor de IA encontrou instabilidade ao processar o Score {score_total}/100. Por favor, tente novamente."
 
 def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str):
