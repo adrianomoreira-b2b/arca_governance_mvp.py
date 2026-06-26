@@ -11,14 +11,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-VERSION = "2.5.0"
+VERSION = "2.6.0"
 TITLE = "ARCA Governance Engine BR"
 
 app = FastAPI(title=TITLE, version=VERSION)
 
 # Coleta as variáveis do painel do Render
-EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "seuemail@gmail.com")
-EMAIL_SENHA_APP = os.getenv("EMAIL_SENHA_APP", "kbzhyouejxprrhmx")
+EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "")
+EMAIL_SENHA_APP = os.getenv("EMAIL_SENHA_APP", "")
 
 class PayloadDiagnosticoARCA(BaseModel):
     empresa: str
@@ -34,9 +34,13 @@ class PayloadDiagnosticoARCA(BaseModel):
     justificativas_bloco: Optional[str] = ""
 
 def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str):
-    """Motor de envio SSL porta 465 forçado e corrigido."""
+    """Motor de envio SSL porta 465 com limpeza de strings."""
     remetente_limpo = str(EMAIL_REMETENTE).strip()
     senha_limpa = str(EMAIL_SENHA_APP).replace(" ", "").strip()
+
+    if not remetente_limpo or not ...:
+        print("⚠️ ALERTA: Credenciais de e-mail ausentes ou vazias.")
+        return False
 
     try:
         # Monta o e-mail do Lead
@@ -92,7 +96,7 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
     dor_usuario = dados.dor_mapeada if dados.dor_mapeada else "Não especificada."
     justificativas_enviadas = dados.justificativas_bloco if dados.justificativas_bloco else "Nenhuma justificativa inserida."
 
-    relatorio_agente_ia = f"[Análise do Agente de IA ARCA]: Identificamos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 Playbook obtido.\n\nDirecionamento Técnico: {analise_base} O Framework ARCA aponta que a falta de processos e o retrabalho manual estão drenando a margem latente do negócio."
+    relatorio_agente_ia = f"[Análise do Agente de IA ARCA]: Identificamos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 obtido.\n\nDirecionamento Técnico: {analise_base} O Framework ARCA aponta que a falta de processos e o retrabalho manual estão drenando a margem latente do negócio."
 
     corpo_email_formatado = f"""
     Olá, {dados.responsavel},
@@ -129,12 +133,9 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
     Equipe ARCA Governance & Grupo Gestão Integrada
     """
 
-    envio_sucesso = disparar_emails_reais(
-        destinatario_lead=dados.email,
-        assunto=f"Resultado Diagnóstico ARCA - {dados.empresa}",
-        corpo_texto=corpo_email_formatado.strip()
-    )
+    envio_sucesso = disparar_emails_reais(dados.email, f"Resultado Diagnóstico ARCA - {dados.empresa}", corpo_email_formatado.strip())
 
+    # CORRIGIDO: Agora usa a palavra certa "classificacao" e os textos em Português do Brasil legítimo
     if envio_sucesso:
         status_email = f"Relatório enviado com sucesso para {dados.email}!"
     else:
@@ -142,7 +143,7 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
 
     return {
         "score_arca": score_total,
-        "classificacao": classification,
+        "classificacao": classificacao,
         "analise_macro": relatorio_agente_ia,
         "confirmacao_envio": {
             "email_status": status_email,
