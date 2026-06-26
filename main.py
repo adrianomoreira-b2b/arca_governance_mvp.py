@@ -5,25 +5,21 @@ from datetime import datetime
 from typing import Optional
 import os
 import smtplib
+import requests
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-VERSION = "3.7.0"
-TITLE = "ARCA Governance Engine - IA Homologada"
+VERSION = "4.0.0"
+TITLE = "ARCA Governance Engine - API Direta HTTP"
 
 app = FastAPI(title=TITLE, version=VERSION)
 
 EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "")
 EMAIL_SENHA_APP = os.getenv("EMAIL_SENHA_APP", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-
-# Configuração global obrigatória exigida pelo SDK do Google para funcionar em produção
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY.strip())
 
 class PayloadDiagnosticoARCA(BaseModel):
     empresa: str
@@ -39,41 +35,64 @@ class PayloadDiagnosticoARCA(BaseModel):
     justificativas_bloco: Optional[str] = ""
 
 def gerar_analise_agente_ia(dados: PayloadDiagnosticoARCA, score_total: int) -> str:
-    """Motor de IA usando a sintaxe homologada do SDK tradicional google-generativeai."""
-    if not GEMINI_API_KEY or GEMINI_API_KEY.strip() == "":
+    """Consome a API do Gemini via protocolo HTTP direto bypassando bloqueios de IP de SDK."""
+    chave_limpa = str(GEMINI_API_KEY).strip()
+
+    if not chave_limpa or chave_limpa == "":
         return f"[Aviso]: Seu Score ARCA foi de {score_total}/100. Insira a chave GEMINI_API_KEY no Render."
 
+    # URL oficial do endpoint da API do Google para o Gemini 1.5 Flash
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={chave_limpa}"
+    
+    headers = {'Content-Type': 'application/json'}
+    
+    prompt_comando = f"""
+    Você é o motor de IA oficial e Consultor Estratégico Sênior do Framework ARCA do Grupo Gestão Integrada.
+    Sua tarefa é analisar o resultado deste diagnóstico empresarial e redigir uma análise executiva legítima, profunda e consultiva.
+
+    REGRAS CRÍTICAS DE TEXTO:
+    1. IDIOMA: Use estritamente o Português do Brasil. Proibido qualquer jargão ou termo de Portugal.
+    2. COMPILAÇÃO DE ADERÊNCIA: Avalie as justificativas textuais escritas pelo cliente pergunta por pergunta. Identifique se o teor indica baixa, média ou alta aderência técnica aos padrões da governança ARCA.
+    3. SUSTENTAÇÃO EM RECEITA (ROI): Demonstre, com base na dor relatada ('{dados.dor_mapeada}') e nas justificativas fornecidas, onde a operação está sofrendo vazamento de caixa (perda oculta de faturamento) e como a implantação do Framework ARCA vai gerar receita, organizar processos e proteger o lucro.
+    4. TAMANHO DA RESPOSTA: Seu relatório deve ser denso e possuir obrigatoriamente entre 15 e 25 linhas operacionais de texto. Seja direto e firme nas fraquezas operacionais mapeadas.
+    
+    Dados para Auditoria:
+    - Empresa Auditada: {dados.empresa}
+    - Segmento/Escopo avaliado: {dados.diagnostico_tipo}
+    - Score Geral Calculado: {score_total}/100
+    - Notas por Pilar: A1={dados.score_pilar_a1}/25, R={dados.score_pilar_r}/25, C={dados.score_pilar_c}/25, A2={dados.score_pilar_a2}/25
+    
+    [Justificativas Inseridas pelo Lead]:
+    {dados.justificativas_bloco}
+    
+    Gere o parecer real do Agente de IA ARCA agora:
+    """
+
+    payload_http = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt_comando}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.3
+        }
+    }
+
     try:
-        # Prompt mestre limpo e focado no padrão brasileiro
-        prompt_comando = f"""
-        Você é o motor de IA oficial e Consultor Estratégico Sênior do Framework ARCA do Grupo Gestão Integrada.
-        Sua tarefa é analisar o resultado deste diagnóstico empresarial e redigir uma análise executiva legítima, profunda e consultiva.
-
-        REGRAS CRÍTICAS DE TEXTO:
-        1. IDIOMA: Use estritamente o Português do Brasil. Proibido qualquer jargão ou termo de Portugal.
-        2. COMPILAÇÃO DE ADERÊNCIA: Avalie as justificativas textuais escritas pelo cliente pergunta por pergunta. Identifique se o teor indica baixa, média ou alta aderência técnica aos padrões da governança ARCA.
-        3. SUSTENTAÇÃO EM RECEITA (ROI): Demonstre, com base na dor relatada ('{dados.dor_mapeada}') e nas justificativas fornecidas, onde a operação está sofrendo vazamento de caixa (perda oculta de faturamento) e como a implantação do Framework ARCA vai gerar receita, organizar processos e proteger o lucro.
-        4. TAMANHO DA RESPOSTA: Seu relatório deve ser denso e possuir obrigatoriamente entre 15 e 25 linhas operacionais de texto. Seja direto e firme nas fraquezas operacionais mapeadas.
-        
-        Dados para Auditoria:
-        - Empresa Auditada: {dados.empresa}
-        - Segmento/Escopo avaliado: {dados.diagnostico_tipo}
-        - Score Geral Calculado: {score_total}/100
-        - Notas por Pilar: A1={dados.score_pilar_a1}/25, R={dados.score_pilar_r}/25, C={dados.score_pilar_c}/25, A2={dados.score_pilar_a2}/25
-        
-        [Justificativas Inseridas pelo Lead]:
-        {dados.justificativas_bloco}
-        
-        Gere o parecer real do Agente de IA ARCA agora:
-        """
-
-        # Chamada limpa e nativa da biblioteca tradicional do Gemini
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(prompt_comando)
-        return response.text.strip()
-        
+        response = requests.post(url, headers=headers, json=payload_http, timeout=20)
+        if response.status_code == 200:
+            resultado_json = response.json()
+            # Extrai o texto de resposta estruturado da API do Google
+            texto_ia = resultado_json['candidates'][0]['content']['parts'][0]['text']
+            return texto_ia.strip()
+        else:
+            print(f"⚠️ Erro HTTP Gemini API: Code {response.status_code} - {response.text}")
+            return f"[Erro Técnico de Conexão]: O servidor de IA encontrou instabilidade ao processar o Score {score_total}/100. Por favor, tente novamente."
     except Exception as e:
-        print(f"❌ FALHA NO GEMINI: {str(e)}")
+        print(f"❌ Falha na requisição HTTP direta: {str(e)}")
         return f"[Erro Técnico de Conexão]: O servidor de IA encontrou instabilidade ao processar o Score {score_total}/100. Por favor, tente novamente."
 
 def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str):
