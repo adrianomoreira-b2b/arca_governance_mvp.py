@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-VERSION = "3.2.0"
-TITLE = "ARCA Governance Engine - IA Corrigida"
+VERSION = "3.4.0"
+TITLE = "ARCA Governance Engine - Conexão IA"
 
 app = FastAPI(title=TITLE, version=VERSION)
 
@@ -35,49 +35,46 @@ class PayloadDiagnosticoARCA(BaseModel):
     justificativas_bloco: Optional[str] = ""
 
 def gerar_analise_agente_ia(dados: PayloadDiagnosticoARCA, score_total: int) -> str:
-    """Motor de IA corrigido passando o prompt diretamente no conteúdo para evitar falhas no Render."""
-    if not GEMINI_API_KEY:
-        print("⚠️ Chave GEMINI_API_KEY ausente.")
-        return f"[Relatório Técnico ARCA]: Seu Score ARCA foi de {score_total}/100. Agende sua sessão para detalharmos o plano."
+    """Motor de IA corrigido com carregamento forçado da chave de API."""
+    chave_limpa = str(GEMINI_API_KEY).strip()
+
+    if not chave_limpa or chave_limpa == "":
+        return f"[Aviso de Configuração]: Seu Score ARCA foi de {score_total}/100. Adicione a chave GEMINI_API_KEY no painel do Render."
 
     try:
-        genai.configure(api_key=GEMINI_API_KEY)
+        # Configuração explícita da API Key antes da geração
+        genai.configure(api_key=chave_limpa)
         
-        # Unificamos as regras de negócio e os dados do cliente em um único comando mestre
-        prompt_completo = f"""
-        Você é o motor especialista e consultor sênior do Framework ARCA, representando o Grupo Gestão Integrada.
-        Sua missão é analisar as respostas estruturadas de um autodiagnóstico empresarial e gerar uma análise executiva profunda, realista e direta.
+        prompt_comando = f"""
+        Você é o motor de IA oficial e Consultor Estratégico do Framework ARCA do Grupo Gestão Integrada.
+        Sua tarefa é analisar o resultado de um diagnóstico empresarial e redigir uma análise executiva legítima, profunda e personalizada.
 
-        REGRAS MANDATÓRIAS:
-        1. IDIOMA: Use estritamente o Português do Brasil.
-        2. ANÁLISE REAL: Leia atentamente a dor central relatada pelo cliente e as justificativas em texto preenchidas. Cruze isso com o Score Geral de {score_total}/100.
-        3. SUSTENTAÇÃO FINANCEIRA (ROI): Demonstre onde a empresa está perdendo dinheiro (faturamento oculto) devido aos gargalos apontados e como a governança do Framework ARCA vai gerar receita e reter lucro.
-        4. TAMANHO DA RESPOSTA: Escreva um texto denso e profissional que ocupe obrigatoriamente entre 15 e 25 linhas de conteúdo técnico.
+        REGRAS CRÍTICAS DE TEXTO:
+        1. IDIOMA: Use estritamente o Português do Brasil. Nunca use termos de Portugal.
+        2. ANÁLISE COMPILADA: Avalie detalhadamente a dor do cliente: '{dados.dor_mapeada}'. Analise as justificativas reais inseridas por ele: '{dados.justificativas_bloco}'. Cruze tudo com o Score Geral de {score_total}/100.
+        3. SUSTENTAÇÃO EM RECEITA (ROI): Mostre claramente onde a falta de processos, retrabalhos ou controles manuais está gerando vazamento de caixa e perda de faturamento latente. Diga como a metodologia ARCA estanca essa perda e gera retorno financeiro direto na receita operacional.
+        4. TAMANHO DA RESPOSTA: Seu relatório deve ser denso e possuir obrigatoriamente entre 15 e 25 linhas operacionais de texto.
         
-        [Dados para Auditoria]:
-        - Empresa: {dados.empresa}
+        Dados da Empresa {dados.empresa}:
         - Escopo: {dados.diagnostico_tipo}
-        - Score Geral: {score_total}/100
-        - Dor Comercial Relatada: '{dados.dor_mapeada}'
-        - Justificativas preenchidas nas perguntas:
-        {dados.justificativas_bloco}
+        - Pontuação Geral: {score_total}/100
+        - Pontuações por Pilar: A1={dados.score_pilar_a1}/25, R={dados.score_pilar_r}/25, C={dados.score_pilar_c}/25, A2={dados.score_pilar_a2}/25
         
-        Gere o relatório executivo agora:
+        Escreva o parecer consultivo real agora:
         """
 
-        # Chamada direta e ultra compatível do modelo
         model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(
-            prompt_completo,
+            prompt_comando,
             generation_config={"temperature": 0.3}
         )
         return response.text.strip()
         
     except Exception as e:
-        print(f"❌ ERRO REAL NA API GEMINI: {str(e)}")
+        print(f"❌ FALHA DE AUTENTICAÇÃO GEMINI: {str(e)}")
         return f"[Erro Técnico de Conexão]: O servidor de IA encontrou instabilidade ao processar o Score {score_total}/100. Por favor, tente novamente."
 
-def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str):
+def disparar_emails_reais(destinatario_lead: str, sender: str, corpo_texto: str):
     remetente_limpo = str(EMAIL_REMETENTE).strip()
     senha_limpa = str(EMAIL_SENHA_APP).replace(" ", "").strip()
 
@@ -87,13 +84,13 @@ def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str
         msg = MIMEMultipart()
         msg['From'] = remetente_limpo
         msg['To'] = destinatario_lead
-        msg['Subject'] = assunto
+        msg['Subject'] = sender
         msg.attach(MIMEText(corpo_texto, 'plain', 'utf-8'))
 
         msg_copia = MIMEMultipart()
         msg_copia['From'] = remetente_limpo
         msg_copia['To'] = remetente_limpo
-        msg_copia['Subject'] = f"🚨 [NOVO LEAD ARCA] - {assunto}"
+        msg_copia['Subject'] = f"🚨 [NOVO LEAD ARCA] - {sender}"
         msg_copia.attach(MIMEText(corpo_texto, 'plain', 'utf-8'))
 
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15)
@@ -141,7 +138,7 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
     ⚠️ CLASSIFICAÇÃO DE RISCO: {classificacao}
     
     ----------------------------------------------------------------------
-    🤖 ANÁLISE DO AGENTE DE IA ARCA (15 A 25 LINHAS COM ROI):
+    🤖 ANÁLISE REAL DO AGENTE DE IA ARCA (15 A 25 LINHAS COM ROI):
     ----------------------------------------------------------------------
     {relatorio_agente_ia}
     
