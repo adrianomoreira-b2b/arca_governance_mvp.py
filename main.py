@@ -11,15 +11,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-VERSION = os.getenv("API_VERSION", "2.0.0")
-TITLE = os.getenv("PROJECT_TITLE", "ARCA Governance Engine")
+VERSION = "2.5.0"
+TITLE = "ARCA Governance Engine BR"
 
 app = FastAPI(title=TITLE, version=VERSION)
 
-EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE")
-EMAIL_SENHA_APP = os.getenv("EMAIL_SENHA_APP")
+# Coleta as variáveis do painel do Render
+EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "seuemail@gmail.com")
+EMAIL_SENHA_APP = os.getenv("EMAIL_SENHA_APP", "kbzhyouejxprrhmx")
 
-# MODELO DE DADOS ALINHADO EM 100% COM O FRONTEND
 class PayloadDiagnosticoARCA(BaseModel):
     empresa: str
     responsavel: str
@@ -31,40 +31,40 @@ class PayloadDiagnosticoARCA(BaseModel):
     score_pilar_c: float
     score_pilar_a2: float
     dor_mapeada: Optional[str] = ""
-    justificativas_bloco: Optional[str] = ""  # Campo crucial de ligação
+    justificativas_bloco: Optional[str] = ""
 
 def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str):
-    """Conexão segura via porta SSL 465 que evita bloqueios do Render."""
-    if not EMAIL_REMETENTE or not EMAIL_SENHA_APP:
-        print("⚠️ ALERTA: Credenciais de e-mail não configuradas no Render.")
-        return False
+    """Motor de envio SSL porta 465 forçado e corrigido."""
+    remetente_limpo = str(EMAIL_REMETENTE).strip()
+    senha_limpa = str(EMAIL_SENHA_APP).replace(" ", "").strip()
+
     try:
-        # Mensagem do Lead
+        # Monta o e-mail do Lead
         msg = MIMEMultipart()
-        msg['From'] = EMAIL_REMETENTE
+        msg['From'] = remetente_limpo
         msg['To'] = destinatario_lead
         msg['Subject'] = assunto
         msg.attach(MIMEText(corpo_texto, 'plain', 'utf-8'))
 
-        # Sua Cópia de Controle
+        # Monta a Cópia de Controle para você
         msg_copia = MIMEMultipart()
-        msg_copia['From'] = EMAIL_REMETENTE
-        msg_copia['To'] = EMAIL_REMETENTE 
+        msg_copia['From'] = remetente_limpo
+        msg_copia['To'] = remetente_limpo
         msg_copia['Subject'] = f"🚨 [NOVO LEAD ARCA] - {assunto}"
         msg_copia.attach(MIMEText(corpo_texto, 'plain', 'utf-8'))
 
-        # Protocolo SSL Direto
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10)
-        server.login(EMAIL_REMETENTE, EMAIL_SENHA_APP)
+        # Conexão SSL Direta na porta 465 (padrão seguro do Google)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15)
+        server.login(remetente_limpo, senha_limpa)
         
-        server.sendmail(EMAIL_REMETENTE, destinatario_lead, msg.as_string())
-        server.sendmail(EMAIL_REMETENTE, EMAIL_REMETENTE, msg_copia.as_string())
+        server.sendmail(remetente_limpo, destinatario_lead, msg.as_string())
+        server.sendmail(remetente_limpo, remetente_limpo, msg_copia.as_string())
         
         server.quit()
-        print("✅ E-mails enviados com sucesso para o lead e diretoria!")
+        print("✅ DISPARO REAL EXECUTADO COM SUCESSO!")
         return True
     except Exception as e:
-        print(f"❌ Erro na conexão de e-mail SMTP: {str(e)}")
+        print(f"❌ ERRO SMTP REAL: {str(e)}")
         return False
 
 @app.get("/", response_class=HTMLResponse)
@@ -92,7 +92,7 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
     dor_usuario = dados.dor_mapeada if dados.dor_mapeada else "Não especificada."
     justificativas_enviadas = dados.justificativas_bloco if dados.justificativas_bloco else "Nenhuma justificativa inserida."
 
-    relatorio_agente_ia = f"[Análise do Agente de IA ARCA]: Identificámos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 obtido.\n\nDirecionamento Técnico: {analise_base} O Framework ARCA aponta que a falta de processos e o retrabalho manual estão a drenar a margem latente do negócio."
+    relatorio_agente_ia = f"[Análise do Agente de IA ARCA]: Identificamos que a dor principal relatada ('{dor_usuario}') está diretamente conectada ao Score de {score_total}/100 Playbook obtido.\n\nDirecionamento Técnico: {analise_base} O Framework ARCA aponta que a falta de processos e o retrabalho manual estão drenando a margem latente do negócio."
 
     corpo_email_formatado = f"""
     Olá, {dados.responsavel},
@@ -122,28 +122,30 @@ def processar_diagnostico_completo(dados: PayloadDiagnosticoARCA):
     
     ----------------------------------------------------------------------
     🚀 PRÓXIMO PASSO MANDATÓRIO:
-    Para validar estes dados textuais e estruturar o plano de contingência de 90 dias, aceda à agenda do consultor Adriano Moreira no link abaixo:
+    Para validar estes dados e estruturar o plano de contingência de 90 dias, acesse a agenda do consultor Adriano Moreira no link abaixo:
     https://calendar.app.google/C1d44pbpqbLmU17m7
     
     Atenciosamente,
     Equipe ARCA Governance & Grupo Gestão Integrada
     """
 
-    # Envia o e-mail real de forma isolada para não quebrar a tela do usuário se falhar
     envio_sucesso = disparar_emails_reais(
         destinatario_lead=dados.email,
         assunto=f"Resultado Diagnóstico ARCA - {dados.empresa}",
         corpo_texto=corpo_email_formatado.strip()
     )
 
-    status_email = f"Relatório Técnico enviado para {dados.email}!" if envio_sucesso else "Exibido no ecrã com sucesso."
+    if envio_sucesso:
+        status_email = f"Relatório enviado com sucesso para {dados.email}!"
+    else:
+        status_email = "Relatório processado e salvo na tela com sucesso!"
 
     return {
         "score_arca": score_total,
-        "classificacao": classificacao,
+        "classificacao": classification,
         "analise_macro": relatorio_agente_ia,
         "confirmacao_envio": {
             "email_status": status_email,
-            "whatsapp_status": "Roadmap de melhorias gerado."
+            "whatsapp_status": "Plano de melhorias gerado com sucesso."
         }
     }
