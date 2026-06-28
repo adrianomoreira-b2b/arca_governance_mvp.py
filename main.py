@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-VERSION = "4.5.0"
+VERSION = "4.6.0"
 TITLE = "ARCA Governance Engine - Produção Segura"
 
 app = FastAPI(
@@ -55,42 +55,48 @@ def gerar_analise_agente_ia(
     chave_sistema = os.getenv("GEMINI_API_KEY", "").strip()
 
     if not chave_sistema:
-        return "[ERRO] Variável GEMINI_API_KEY não encontrada."
+        return "[ERRO] Variável GEMINI_API_KEY não encontrada no ambiente."
+
+    # Modelo atualmente suportado pela API Gemini
+    modelo = "gemini-2.0-flash"
 
     url = (
         "https://generativelanguage.googleapis.com/v1beta/"
-        f"models/gemini-1.5-flash:generateContent?key={chave_sistema}"
+        f"models/{modelo}:generateContent?key={chave_sistema}"
     )
 
     prompt = f"""
-Você é o Consultor Estratégico Sênior do Framework ARCA.
+Você é o Consultor Estratégico Sênior do Framework ARCA do Grupo Gestão Integrada.
 
-Analise os dados abaixo e gere um relatório executivo.
+Analise os dados abaixo e gere um relatório executivo consultivo.
 
-Regras:
-- Utilizar Português do Brasil.
+REGRAS:
+- Utilizar exclusivamente Português do Brasil.
 - Produzir entre 15 e 25 linhas.
 - Identificar riscos operacionais.
-- Demonstrar oportunidades de ROI.
-- Apresentar recomendações práticas.
+- Apresentar oportunidades de melhoria.
+- Demonstrar potenciais ganhos financeiros e ROI.
+- Ser objetivo, consultivo e executivo.
 
-Empresa: {dados.empresa}
-Responsável: {dados.responsavel}
-Diagnóstico: {dados.diagnostico_tipo}
+EMPRESA: {dados.empresa}
+RESPONSÁVEL: {dados.responsavel}
+TIPO DE DIAGNÓSTICO: {dados.diagnostico_tipo}
 
-Score Geral: {score_total}/100
+SCORE GERAL: {score_total}/100
 
-Pilares:
+PILARES:
 A1 = {dados.score_pilar_a1}/25
-R = {dados.score_pilar_r}/25
-C = {dados.score_pilar_c}/25
+R  = {dados.score_pilar_r}/25
+C  = {dados.score_pilar_c}/25
 A2 = {dados.score_pilar_a2}/25
 
-Dor principal:
+DOR PRINCIPAL:
 {dados.dor_mapeada}
 
-Justificativas:
+JUSTIFICATIVAS:
 {dados.justificativas_bloco}
+
+Gere agora o parecer executivo.
 """
 
     payload = {
@@ -112,7 +118,7 @@ Justificativas:
     try:
 
         response = requests.post(
-            url,
+            url=url,
             headers={
                 "Content-Type": "application/json"
             },
@@ -120,22 +126,39 @@ Justificativas:
             timeout=60
         )
 
+        print("=" * 80)
         print("STATUS GEMINI:", response.status_code)
         print("RESPOSTA GEMINI:", response.text)
+        print("=" * 80)
 
         if response.status_code != 200:
-            return f"[ERRO IA {response.status_code}] {response.text}"
+            return (
+                f"[ERRO IA {response.status_code}]\n"
+                f"{response.text}"
+            )
 
         resposta = response.json()
 
-        return (
-            resposta["candidates"][0]
-            ["content"]["parts"][0]["text"]
+        candidatos = resposta.get("candidates", [])
+
+        if not candidatos:
+            return "[ERRO IA] Nenhum conteúdo retornado."
+
+        texto = (
+            candidatos[0]
+            .get("content", {})
+            .get("parts", [{}])[0]
+            .get("text", "")
         )
+
+        if not texto:
+            return "[ERRO IA] Resposta vazia."
+
+        return texto.strip()
 
     except Exception as e:
         print("ERRO GEMINI:", str(e))
-        return f"[ERRO TÉCNICO] {str(e)}"
+        return f"[ERRO TÉCNICO GEMINI] {str(e)}"
 
 # ==========================================================
 # SMTP
@@ -149,6 +172,10 @@ def disparar_emails_reais(
 
     remetente = EMAIL_REMETENTE.strip()
     senha = EMAIL_SENHA_APP.strip().replace(" ", "")
+
+    if not remetente or not senha:
+        print("Credenciais SMTP ausentes.")
+        return False
 
     try:
 
@@ -172,7 +199,8 @@ def disparar_emails_reais(
 
         servidor = smtplib.SMTP_SSL(
             "smtp.gmail.com",
-            465
+            465,
+            timeout=20
         )
 
         servidor.login(
@@ -212,15 +240,27 @@ def home():
         "index.html"
     )
 
-    with open(
-        caminho,
-        "r",
-        encoding="utf-8"
-    ) as arquivo:
+    if os.path.exists(caminho):
 
-        return HTMLResponse(
-            content=arquivo.read()
-        )
+        with open(
+            caminho,
+            "r",
+            encoding="utf-8"
+        ) as arquivo:
+
+            return HTMLResponse(
+                content=arquivo.read()
+            )
+
+    return HTMLResponse(
+        content="""
+        <html>
+            <body>
+                <h1>ARCA Governance Engine Online</h1>
+            </body>
+        </html>
+        """
+    )
 
 @app.get("/health")
 def health():
@@ -243,10 +283,8 @@ def processar_diagnostico_completo(
 
     if score_total <= 40:
         classificacao = "CRÍTICA"
-
     elif score_total <= 75:
         classificacao = "ALTA"
-
     else:
         classificacao = "MÉDIA"
 
@@ -260,18 +298,23 @@ Olá, {dados.responsavel}
 
 Empresa: {dados.empresa}
 
-Score ARCA: {score_total}/100
+Score ARCA Calculado: {score_total}/100
+Nível de Risco Comercial: {classificacao}
 
-Classificação: {classificacao}
+============================================================
 
-ANÁLISE EXECUTIVA
+ANÁLISE EXECUTIVA DO AGENTE ARCA
 
 {relatorio_ia}
 
-Agenda:
+============================================================
+
+Próximo passo recomendado:
+
 https://calendar.app.google/C1d44pbpqbLmU17m7
 
 Equipe ARCA Governance
+Grupo Gestão Integrada
 """
 
     envio = disparar_emails_reais(
@@ -286,9 +329,9 @@ Equipe ARCA Governance
         "analise_macro": relatorio_ia,
         "confirmacao_envio": {
             "email_status": (
-                "Enviado com sucesso"
-                if envio else
-                "Falha no envio"
+                "Relatório enviado com sucesso."
+                if envio
+                else "Falha no envio do e-mail."
             )
         }
     }
