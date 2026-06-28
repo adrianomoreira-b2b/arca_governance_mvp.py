@@ -12,14 +12,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-VERSION = "4.0.0"
-TITLE = "ARCA Governance Engine - API Direta"
+VERSION = "4.2.0"
+TITLE = "ARCA Governance Engine - Codigo Blindado"
 
 app = FastAPI(title=TITLE, version=VERSION)
 
 EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "")
 EMAIL_SENHA_APP = os.getenv("EMAIL_SENHA_APP", "")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+# BLINDAGEM: Chave injetada direto no codigo para o Render nao perder a variavel
+GEMINI_API_KEY = "AQ.Ab8RN6I7oVF1x5uuAfwUWja6_iV6WWh0WAg28_ORgwuZMAbDIg"
 
 class PayloadDiagnosticoARCA(BaseModel):
     empresa: str
@@ -35,15 +37,13 @@ class PayloadDiagnosticoARCA(BaseModel):
     justificativas_bloco: Optional[str] = ""
 
 def gerar_analise_agente_ia(dados: PayloadDiagnosticoARCA, score_total: int) -> str:
-    """Consome a API do Gemini via protocolo HTTP direto bypassando bloqueios e instabilidades de SDK."""
+    """Consome a API do Gemini via POST HTTP com chave blindada no escopo interno."""
     chave_limpa = str(GEMINI_API_KEY).strip()
 
-    if not chave_limpa or chave_limpa == "":
-        return f"[Aviso]: Seu Score ARCA foi de {score_total}/100. Insira a chave GEMINI_API_KEY no Render."
+    if not chave_limpa or "COLE_AQUI" in chave_limpa:
+        return f"[Aviso]: Seu Score ARCA foi de {score_total}/100. Insira a chave real no codigo main.py."
 
-    # URL oficial do endpoint da API do Google para o Gemini 1.5 Flash
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={chave_limpa}"
-    
     headers = {'Content-Type': 'application/json'}
     
     prompt_comando = f"""
@@ -69,31 +69,19 @@ def gerar_analise_agente_ia(dados: PayloadDiagnosticoARCA, score_total: int) -> 
     """
 
     payload_http = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt_comando}
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.3
-        }
+        "contents": [{"parts": [{"text": prompt_comando}]}],
+        "generationConfig": {"temperature": 0.3}
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload_http, timeout=20)
+        response = requests.post(url, headers=headers, json=payload_http, timeout=25)
         if response.status_code == 200:
             resultado_json = response.json()
-            # Extrai o texto de resposta estruturado da API do Google
-            texto_ia = resultado_json['candidates'][0]['content']['parts'][0]['text']
-            return texto_ia.strip()
+            return resultado_json['candidates'][0]['content']['parts'][0]['text'].strip()
         else:
-            print(f"⚠️ Erro HTTP Gemini API: Code {response.status_code} - {response.text}")
-            return f"[Erro Técnico de Conexão]: O servidor de IA encontrou instabilidade ao processar o Score {score_total}/100. Por favor, tente novamente."
+            return f"[Erro de Resposta da IA - Código {response.status_code}]: O motor de IA recebeu um retorno inválido para o Score {score_total}/100."
     except Exception as e:
-        print(f"❌ Falha na requisição HTTP direta: {str(e)}")
-        return f"[Erro Técnico de Conexão]: O servidor de IA encontrou instabilidade ao processar o Score {score_total}/100. Por favor, tente novamente."
+        return f"[Erro Técnico de Conexão]: O servidor encontrou instabilidade ao processar o Score {score_total}/100. Por favor, tente novamente."
 
 def disparar_emails_reais(destinatario_lead: str, assunto: str, corpo_texto: str):
     remetente_limpo = str(EMAIL_REMETENTE).strip()
