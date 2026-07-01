@@ -8,4 +8,3 @@ class NotificationProvider(ABC):
     @abstractmethod
     def send(self, destinatario: str, mensagem: Any) -> bool:
         pass
-    
