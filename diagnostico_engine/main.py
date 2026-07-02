@@ -3,7 +3,7 @@ from flask import Flask, request, render_template, jsonify
 from services.diagnostico_service import DiagnosticoService
 from services.notification_service import NotificationService
 from infrastructure.providers.email_provider import EmailProvider
-from infrastructure.providers.crm_provider import CRMProvider
+from infrastructure.providers.crm_provider import CrmProvider
 from infrastructure.logger import logger
 
 app = Flask(__name__)
@@ -11,7 +11,7 @@ app = Flask(__name__)
 # Instanciação dos serviços na inicialização (Injeção de Dependência)
 # Adicione ou remova provedores aqui conforme sua necessidade comercial
 email_provider = EmailProvider()
-crm_provider = CRMProvider()
+crm_provider = CrmProvider()
 
 notification_service = NotificationService()
 notification_service.registrar_provider(email_provider)
