@@ -4,8 +4,8 @@ from services.diagnostico_service import DiagnosticoService
 from services.notification_service import NotificationService
 from infrastructure.providers.email_provider import EmailProvider
 from infrastructure.providers.crm_provider import CrmProvider
-from infrastructure.logger import logger
-
+from infrastructure.logger import get_logger
+logger = get_logger("Main")
 app = Flask(__name__)
 
 # Instanciação dos serviços na inicialização (Injeção de Dependência)
