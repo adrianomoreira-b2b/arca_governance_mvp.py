@@ -36,7 +36,10 @@ def processar_formulario():
         if not dados_brutos:
             return jsonify({"erro": "Nenhum dado enviado."}), 400
 
-        resultado = diagnostico_service.executar_fluxo_completo(dados_brutos)
+       resultado = diagnostico_service.executar_fluxo_completo(
+    dados=dados_brutos,
+    contato_usuario=dados_brutos.get("email_usuario", "")
+)
 
         return jsonify(resultado), 200
 
