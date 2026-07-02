@@ -1,16 +1,30 @@
 """
-Regras puras de domínio. Não importam nada do framework ou infraestrutura.
+Regras puras de domínio.
 """
 
+CAMPOS_PONTUACAO = {
+    "atracao_site",
+    "marketing",
+    "crm",
+    "followup",
+    "processo",
+    "indicadores",
+}
+
+
 def calcular_pontuacao_pura(dados: dict) -> int:
-    # Exemplo simulado de regra de negócio pura
     score = 0
-    for chave, valor in dados.items():
-        if isinstance(valor, int):
-            score += valor
-        elif str(valor).isdigit():
+
+    for campo in CAMPOS_PONTUACAO:
+        valor = dados.get(campo, 0)
+
+        try:
             score += int(valor)
+        except (TypeError, ValueError):
+            pass
+
     return score
+
 
 def definir_perfil(score: int) -> str:
     if score < 30:

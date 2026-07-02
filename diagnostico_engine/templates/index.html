@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diagnóstico ARCA</title>
+
 <style>
 body{
     font-family:Arial,sans-serif;
@@ -11,21 +12,37 @@ body{
     margin:40px auto;
     padding:20px;
 }
+
 fieldset{
     margin-bottom:25px;
+    padding:15px;
 }
+
 label{
     display:block;
-    margin:8px 0;
+    margin:10px 0;
 }
+
+input,select{
+    width:100%;
+    padding:8px;
+    margin-top:5px;
+    box-sizing:border-box;
+}
+
 button{
     padding:12px 25px;
+    cursor:pointer;
 }
+
 pre{
     background:#f5f5f5;
     padding:15px;
+    border-radius:6px;
+    white-space:pre-wrap;
 }
 </style>
+
 </head>
 
 <body>
@@ -34,36 +51,54 @@ pre{
 
 <form id="formulario">
 
-<h2>Dados</h2>
+<h2>Dados do Contato</h2>
 
-<label>Nome
-<input type="text" name="nome_usuario">
+<label>
+Nome
+<input
+type="text"
+name="nome_usuario"
+required>
 </label>
 
-<label>E-mail
-<input type="email" name="email_usuario">
+<label>
+E-mail
+<input
+type="email"
+name="email_usuario"
+required>
 </label>
 
-<label>WhatsApp
-<input type="text" name="whatsapp_usuario">
+<label>
+WhatsApp
+<input
+type="text"
+name="whatsapp_usuario"
+required>
 </label>
 
 <fieldset>
 
 <legend>Atração</legend>
 
-<label>Site estruturado?
+<label>
+Site estruturado?
+
 <select name="atracao_site">
 <option value="0">Não</option>
 <option value="5">Sim</option>
 </select>
+
 </label>
 
-<label>Marketing ativo?
+<label>
+Marketing ativo?
+
 <select name="marketing">
 <option value="0">Não</option>
 <option value="5">Sim</option>
 </select>
+
 </label>
 
 </fieldset>
@@ -72,18 +107,24 @@ pre{
 
 <legend>Relacionamento</legend>
 
-<label>Utiliza CRM?
+<label>
+Utiliza CRM?
+
 <select name="crm">
 <option value="0">Não</option>
 <option value="10">Sim</option>
 </select>
+
 </label>
 
-<label>Follow-up definido?
+<label>
+Follow-up definido?
+
 <select name="followup">
 <option value="0">Não</option>
 <option value="10">Sim</option>
 </select>
+
 </label>
 
 </fieldset>
@@ -92,11 +133,14 @@ pre{
 
 <legend>Conversão</legend>
 
-<label>Processo Comercial?
+<label>
+Processo Comercial?
+
 <select name="processo">
 <option value="0">Não</option>
 <option value="15">Sim</option>
 </select>
+
 </label>
 
 </fieldset>
@@ -105,11 +149,14 @@ pre{
 
 <legend>Aceleração</legend>
 
-<label>Indicadores?
+<label>
+Indicadores?
+
 <select name="indicadores">
 <option value="0">Não</option>
 <option value="15">Sim</option>
 </select>
+
 </label>
 
 </fieldset>
@@ -126,38 +173,48 @@ Gerar Diagnóstico
 
 <script>
 
-document.getElementById("formulario").addEventListener("submit",async function(e){
+document.getElementById("formulario").addEventListener("submit", async function(e){
 
-e.preventDefault();
+    e.preventDefault();
 
-const dados={};
+    const dados = {};
 
-new FormData(this).forEach((v,k)=>{
+    new FormData(this).forEach((valor, campo) => {
 
-if(!isNaN(v) && v!==""){
-dados[k]=Number(v);
-}else{
-dados[k]=v;
-}
+        switch(campo){
 
-});
+            case "atracao_site":
+            case "marketing":
+            case "crm":
+            case "followup":
+            case "processo":
+            case "indicadores":
+                dados[campo] = Number(valor);
+                break;
 
-const resposta=await fetch("/processar",{
+            default:
+                dados[campo] = valor;
 
-method:"POST",
+        }
 
-headers:{
-"Content-Type":"application/json"
-},
+    });
 
-body:JSON.stringify(dados)
+    const resposta = await fetch("/processar",{
 
-});
+        method:"POST",
 
-const json=await resposta.json();
+        headers:{
+            "Content-Type":"application/json"
+        },
 
-document.getElementById("resultado").textContent=
-JSON.stringify(json,null,4);
+        body:JSON.stringify(dados)
+
+    });
+
+    const json = await resposta.json();
+
+    document.getElementById("resultado").textContent =
+        JSON.stringify(json,null,4);
 
 });
 

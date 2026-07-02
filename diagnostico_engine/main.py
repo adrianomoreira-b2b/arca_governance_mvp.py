@@ -23,6 +23,8 @@ notification_service.adicionar_provider(crm_provider)
 
 # Diagnóstico
 diagnostico_service = DiagnosticoService(notification_service)
+
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
@@ -36,10 +38,10 @@ def processar_formulario():
         if not dados_brutos:
             return jsonify({"erro": "Nenhum dado enviado."}), 400
 
-resultado = diagnostico_service.executar_fluxo_completo(
-    dados=dados_brutos,
-    contato_usuario=dados_brutos.get("email_usuario", "")
-)
+        resultado = diagnostico_service.executar_fluxo_completo(
+            dados=dados_brutos,
+            contato_usuario=dados_brutos.get("email_usuario", "")
+        )
 
         return jsonify(resultado), 200
 
