@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico ARCA</title>
+</head>
+<body>
+
+<h1>Diagnóstico ARCA</h1>
+
+<form id="diagnosticoForm">
+
+    <label>Nome</label><br>
+    <input type="text" name="nome_usuario"><br><br>
+
+    <label>E-mail</label><br>
+    <input type="email" name="email_usuario"><br><br>
+
+    <label>WhatsApp</label><br>
+    <input type="text" name="whatsapp_usuario"><br><br>
+
+    <button type="submit">Enviar Diagnóstico</button>
+
+</form>
+
+<pre id="resultado"></pre>
+
+<script>
+document.getElementById("diagnosticoForm").addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const form = new FormData(this);
+
+    const dados = {};
+
+    form.forEach((valor,chave)=>{
+        dados[chave]=valor;
+    });
+
+    const resposta = await fetch("/processar",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify(dados)
+    });
+
+    const json = await resposta.json();
+
+    document.getElementById("resultado").textContent =
+        JSON.stringify(json,null,4);
+
+});
+</script>
+
+</body>
+</html>
